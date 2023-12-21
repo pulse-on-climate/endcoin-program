@@ -1,0 +1,11 @@
+{
+  "name": "dataservice",
+  "version": "1.0.0",
+  "description": "A Simple REST API to collect SST data, average it, and serve it as a REST API endpoint. ",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
