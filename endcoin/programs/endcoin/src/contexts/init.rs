@@ -7,34 +7,28 @@ use anchor_spl::{token_interface::{TokenAccount, Mint, TokenInterface}, associat
 #[instruction(seed: u64)]
 pub struct Initialize<'info> {
     #[account(mut)]
-    pub initializer: Signer<'info>,
-    pub mint_x: InterfaceAccount<'info, Mint>,
-    pub mint_y: InterfaceAccount<'info, Mint>,
-    #[account(
-        init,
-        seeds = [b"lp", config.key().as_ref()],
-        payer = initializer,
-        bump,
-        mint::decimals = 6,
-        mint::authority = auth,
-    )] pub lp_mint: InterfaceAccount<'info, Mint>,
+    pub initializer:    Signer<'info>,
+    pub endcoin_mint:   InterfaceAccount<'info, Mint>,
+    pub gaiacoin_mint:  InterfaceAccount<'info, Mint>,
 
     #[account(
         init,
         payer = initializer,
-        associated_token::mint = mint_x,
+        associated_token::mint = endcoin_mint,
         associated_token::authority = auth,
-    )] pub vault_x: InterfaceAccount<'info, TokenAccount>,
+    )] pub endcoin_vault:     InterfaceAccount<'info, TokenAccount>,
     
     #[account(
         init,
         payer = initializer,
-        associated_token::mint = mint_y,
+        associated_token::mint = gaiacoin_mint,
         associated_token::authority = auth,
-    )] pub vault_y: InterfaceAccount<'info, TokenAccount>,
+    )] pub gaiacoin_vault: InterfaceAccount<'info, TokenAccount>,
     
     /// CHECK: This account is only used for signing purposes
-    #[account(seeds = [b"auth"], bump)] pub auth: UncheckedAccount<'info>,
+    #[account(
+        seeds = [b"auth"], bump
+    )] pub auth: UncheckedAccount<'info>,
     
     #[account(
         init,
@@ -62,13 +56,12 @@ impl<'info> Initialize<'info> {
             Config {
                 seed,
                 authority,
-                mint_x: self.mint_x.key(),
-                mint_y: self.mint_y.key(),
+                endcoin_mint: self.endcoin_mint.key(),
+                gaiacoin_mint: self.gaiacoin_mint.key(),
                 fee,
                 locked: false,
                 auth_bump: bumps.auth,
                 config_bump: bumps.config,
-                lp_bump: bumps.lp_mint,
             });
 
             Clock::get()?.unix_timestamp;
