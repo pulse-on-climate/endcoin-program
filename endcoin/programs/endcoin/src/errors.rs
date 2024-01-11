@@ -1,5 +1,4 @@
 use anchor_lang::error_code;
-use constant_product_curve::CurveError;
 
 #[error_code]
 pub enum AmmError {
@@ -19,12 +18,4 @@ pub enum AmmError {
     ZeroBalance,
     #[msg("Slippage Exceeded")]
     SlippageExceeded,
-}
-
-impl From<CurveError> for AmmError {
-    fn from(error: CurveError) -> AmmError {
-        match error {
-            _ => AmmError::DefaultError,
-        }
-    }
 }

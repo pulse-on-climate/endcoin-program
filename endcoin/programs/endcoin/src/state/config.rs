@@ -4,12 +4,11 @@ use anchor_lang::prelude::*;
 pub struct Config {
     pub seed: u64,
     pub authority: Option<Pubkey>,
-    pub endcoin_mint: Pubkey,
-    pub gaiacoin_mint: Pubkey,
     pub fee: u16,
     pub locked: bool,
     pub auth_bump: u8,
     pub config_bump: u8,
+    pub temperature: f32
 }
 
 impl Space for Config {

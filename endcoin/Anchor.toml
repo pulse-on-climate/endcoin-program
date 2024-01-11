@@ -6,6 +6,7 @@ skip-lint = false
 
 [programs.localnet]
 endcoin = "AAc5RWfWdn24hN9mWRTQr18TcHz5JyPnjATwamaCZAiF"
+endcoin-amm = "4gqKMD7ft5KVishh1NKUmn5L6tCtbZUfpTD4dekVP5uZ"
 rectifier = "GmQxUzSJpCxLKmHZUVpbJTVSpkyes9FsG9fK7LFKdHb7"
 
 [registry]

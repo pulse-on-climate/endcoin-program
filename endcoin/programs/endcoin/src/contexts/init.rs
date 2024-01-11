@@ -1,71 +1,81 @@
-use anchor_lang::prelude::*;
-use crate::state::Config;
-use crate::errors::AmmError;
-use anchor_spl::{token_interface::{TokenAccount, Mint, TokenInterface}, associated_token::AssociatedToken};
-
+use anchor_lang::{prelude::*, solana_program::nonce::state::Data};
+use anchor_spl::{token_interface::{TokenAccount, Mint, TokenInterface}, associated_token::{AssociatedToken, Create}, metadata::mpl_token_metadata::types::DataV2};
+use anchor_spl::metadata::{ID as MetadataProgram, CreateMetadataAccountsV3, create_metadata_accounts_v3};
+// initialize endcoin 
+// add metaplex metadata 
 #[derive(Accounts)]
 #[instruction(seed: u64)]
-pub struct Initialize<'info> {
+pub struct Init<'info> {
     #[account(mut)]
-    pub initializer:    Signer<'info>,
-    pub endcoin_mint:   InterfaceAccount<'info, Mint>,
-    pub gaiacoin_mint:  InterfaceAccount<'info, Mint>,
-
+    pub signer: Signer<'info>,
     #[account(
         init,
-        payer = initializer,
-        associated_token::mint = endcoin_mint,
-        associated_token::authority = auth,
-    )] pub endcoin_vault:     InterfaceAccount<'info, TokenAccount>,
-    
+        payer = signer,
+        seeds = [b"endcoin"],
+        bump,
+        mint::decimals = 6,
+        mint::authority = auth,
+    )] pub endcoin_mint: InterfaceAccount<'info, Mint>,
     #[account(
         init,
-        payer = initializer,
-        associated_token::mint = gaiacoin_mint,
-        associated_token::authority = auth,
-    )] pub gaiacoin_vault: InterfaceAccount<'info, TokenAccount>,
-    
+        payer = signer,
+        seeds = [b"gaiacoin"],
+        bump,
+        mint::decimals = 6,
+        mint::authority = auth,
+    )] pub gaiacoin_mint: InterfaceAccount<'info, Mint>,
     /// CHECK: This account is only used for signing purposes
     #[account(
         seeds = [b"auth"], bump
     )] pub auth: UncheckedAccount<'info>,
-    
-    #[account(
-        init,
-        payer = initializer,
-        seeds = [b"config", seed.to_le_bytes().as_ref()],
-        bump,
-        space = Config::INIT_SPACE,
-    )] pub config: Account<'info, Config>,
-    
+
     pub system_program: Program<'info, System>,
     pub token_program: Interface<'info, TokenInterface>,
     pub associated_token_program: Program<'info, AssociatedToken>, 
 }
 
-impl<'info> Initialize<'info> {
-    pub fn init(&mut self,
-        bumps: &InitializeBumps,
-        seed: u64,
-        fee: u16,
-        authority: Option<Pubkey>,
+impl<'info> Init<'info> {
+    
+    pub fn create_metadata(&mut self, name: &str, symbol: &str, uri: &str) -> Result<()> {
+        let accounts = CreateMetadataAccountsV3{
+            metadata: , // ???
+            mint: self.endcoin_mint.to_account_info(),
+            mint_authority: self.auth.to_account_info(),
+            payer: self.signer.to_account_info(),
+            update_authority: self.auth.to_account_info(),
+            system_program: self.system_program.to_account_info(),
+            rent, // what do I do with rent now? 
+    
+        };
+        
+        let seeds = [&[b"auth",  &[bump]]];
+        let signer_seeds = &[&seeds[..]];
+    
+        let cpi_ctx = CpiContext::new_with_signer(MetadataProgram, accounts, signer_seeds);
+    
+        let data = DataV2{
+            name,
+            symbol,
+            uri,
+            seller_fee_basis_points:0,
+            creators:None,
+            collection:None,
+            uses:None
+        };
+    
+        create_metadata_accounts_v3(cpi_ctx, data, false, true, None)
+    }
+
+
+
+
+
+    pub fn init(&mut self
     ) -> Result<()> {
-        require!(fee <= 10000, AmmError::InvalidFee);
-
-        self.config.set_inner(
-            Config {
-                seed,
-                authority,
-                endcoin_mint: self.endcoin_mint.key(),
-                gaiacoin_mint: self.gaiacoin_mint.key(),
-                fee,
-                locked: false,
-                auth_bump: bumps.auth,
-                config_bump: bumps.config,
-            });
-
-            Clock::get()?.unix_timestamp;
-
+        
         Ok(())
     }
 }
+
+
+
