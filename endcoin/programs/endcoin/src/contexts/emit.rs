@@ -1,53 +1,77 @@
-use anchor_lang::prelude::*;
+use anchor_lang::{prelude::*, solana_program::pubkey};
 use crate::state::Config;
-use anchor_spl::{token_interface::{TokenAccount, Mint, TokenInterface}, associated_token::AssociatedToken};
-
-// In emit, we intend to emit endcoin and gaiacoin tokens to the vault accounts owned by the AMM.
-
+use anchor_spl::{token_interface::{TokenAccount, Mint, TokenInterface, mint_to, MintTo}, associated_token::AssociatedToken};
 #[derive(Accounts)]
-#[instruction(seed: u64)]
-pub struct Emit<'info> {
-    #[account(mut)] // do we want this to be mutable? This is the account that is signing the transaction which should only be allowed by one account. 
-    pub initializer: Signer<'info>,
+pub struct MintTokens<'info> {
+    #[account(mut)]
+    pub signer: Signer<'info>,
+    #[account(
+        mut,
+        seeds = [b"endcoin"],
+        bump,
+        mint::decimals = 6,
+        mint::authority = auth,
+    )]
     pub endcoin_mint: InterfaceAccount<'info, Mint>,
+    #[account(
+        mut,
+        seeds = [b"gaiacoin"],
+        bump,
+        mint::decimals = 6,
+        mint::authority = auth,
+    )]
     pub gaiacoin_mint: InterfaceAccount<'info, Mint>,
     #[account(
         init,
-        payer = initializer,
+        payer = signer,
         associated_token::mint = endcoin_mint,
         associated_token::authority = auth,
-    )] pub endcoin_vault:     InterfaceAccount<'info, TokenAccount>,
+    )] pub endcoin_vault: InterfaceAccount<'info, TokenAccount>,
     #[account(
         init,
-        payer = initializer,
+        payer = signer,
         associated_token::mint = gaiacoin_mint,
         associated_token::authority = auth,
     )] pub gaiacoin_vault: InterfaceAccount<'info, TokenAccount>,
-    
     /// CHECK: This account is only used for signing purposes
     #[account(
         seeds = [b"auth"], bump
     )] pub auth: UncheckedAccount<'info>,
-    
-    #[account(
-        init,
-        payer = initializer,
-        seeds = [b"config", seed.to_le_bytes().as_ref()],
-        bump,
-        space = Config::INIT_SPACE,
-    )] pub config: Account<'info, Config>,
-    
+    pub rent: Sysvar<'info, Rent>,
     pub system_program: Program<'info, System>,
     pub token_program: Interface<'info, TokenInterface>,
-    pub associated_token_program: Program<'info, AssociatedToken>, 
+    pub associated_token_program: Program<'info, AssociatedToken>,
 }
 
-impl<'info> Emit<'info> {
+
+impl<'info> MintTokens<'info> {
+    pub fn mint_tokens(
+        &self, 
+        quantity: u64, 
+        to: InterfaceAccount<'info, TokenAccount >, 
+        mint: InterfaceAccount<'info, Mint>,
+        mint_seeds_string: &str, 
+    ) -> Result<()> {
+        let seeds = &[mint_seeds_string.as_bytes()];
+        let signer = [&seeds[..]];
+
+        mint_to(
+            CpiContext::new_with_signer(
+                self.token_program.to_account_info(),
+                MintTo {
+                    authority: self.auth.to_account_info(),
+                    to: to.to_account_info(), 
+                    mint: self.endcoin_mint.to_account_info(),
+                },
+                &signer,
+            ),
+            quantity,
+        )?;
+
+        Ok(())
+    }
     pub fn mint(&mut self,
-        seed: u64,
-        fee: u16,
-        authority: Option<Pubkey>,
-        temperature: u8,
+
     ) -> Result<()> {
         
 

@@ -1,6 +1,6 @@
-use anchor_lang::{prelude::*, solana_program::nonce::state::Data};
-use anchor_spl::{token_interface::{TokenAccount, Mint, TokenInterface}, associated_token::{AssociatedToken, Create}, metadata::mpl_token_metadata::types::DataV2};
-use anchor_spl::metadata::{ID as MetadataProgram, CreateMetadataAccountsV3, create_metadata_accounts_v3};
+use anchor_lang::prelude::*;
+use anchor_spl::{token_interface::{Mint, TokenInterface}, associated_token::AssociatedToken, metadata::mpl_token_metadata::{types::DataV2, accounts::Metadata}};
+use anchor_spl::metadata::{CreateMetadataAccountsV3, create_metadata_accounts_v3};
 // initialize endcoin 
 // add metaplex metadata 
 #[derive(Accounts)]
@@ -32,26 +32,28 @@ pub struct Init<'info> {
     pub system_program: Program<'info, System>,
     pub token_program: Interface<'info, TokenInterface>,
     pub associated_token_program: Program<'info, AssociatedToken>, 
+    pub rent: Sysvar<'info, Rent>,
+    pub metadata_program: Program<'info, Metadata>,
 }
 
 impl<'info> Init<'info> {
     
-    pub fn create_metadata(&mut self, name: &str, symbol: &str, uri: &str) -> Result<()> {
+    pub fn create_metadata(&mut self, name: String, symbol: String, uri: String) -> Result<()> {
         let accounts = CreateMetadataAccountsV3{
-            metadata: , // ???
+            metadata: self.metadata_program.to_account_info(),   
             mint: self.endcoin_mint.to_account_info(),
             mint_authority: self.auth.to_account_info(),
             payer: self.signer.to_account_info(),
             update_authority: self.auth.to_account_info(),
             system_program: self.system_program.to_account_info(),
-            rent, // what do I do with rent now? 
+            rent: self.rent.to_account_info(), // what do I do with rent now? 
     
         };
         
         let seeds = [&[b"auth",  &[bump]]];
         let signer_seeds = &[&seeds[..]];
     
-        let cpi_ctx = CpiContext::new_with_signer(MetadataProgram, accounts, signer_seeds);
+        let cpi_ctx = CpiContext::new_with_signer(metadata_program, accounts, signer_seeds);
     
         let data = DataV2{
             name,

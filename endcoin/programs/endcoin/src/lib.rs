@@ -14,9 +14,9 @@ pub mod endcoin {
     
     pub fn create_metadata(ctx: Context<Init>, name: String, symbol: String, uri: String) -> Result<()> {
         // Endcoin Metadata
-        ctx.accounts.create_metadata("Endcoin", "END", "endcoin.com/cool-logo-end.png")?;
+        ctx.accounts.create_metadata("Endcoin".to_string(), "END".to_string(), "endcoin.com/cool-logo-end.png".to_string())?;
         // Gaiacoin Metadata
-        ctx.accounts.create_metadata("Gaiacoin", "GAIA", "gaiacoin.com/cool-logo-gaia.png")
+        ctx.accounts.create_metadata("Gaiacoin".to_string(), "GAIA".to_string(), "gaiacoin.com/cool-logo-gaia.png".to_string())
     }
     pub fn init(ctx: Context<Init>) -> Result<()> {
         ctx.accounts.init()
@@ -25,7 +25,7 @@ pub mod endcoin {
     
 
 
-    pub fn emit(ctx: Context<Emit>) -> Result<()> {
+    pub fn emit(ctx: Context<MintTokens>) -> Result<()> {
 
         Ok(())
     }
