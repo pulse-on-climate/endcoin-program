@@ -1,6 +1,7 @@
-use anchor_lang::{prelude::*, solana_program::pubkey};
-use crate::state::Config;
+use anchor_lang::prelude::*;
 use anchor_spl::{token_interface::{TokenAccount, Mint, TokenInterface, mint_to, MintTo}, associated_token::AssociatedToken};
+use crate::State;
+
 #[derive(Accounts)]
 pub struct MintTokens<'info> {
     #[account(mut)]
