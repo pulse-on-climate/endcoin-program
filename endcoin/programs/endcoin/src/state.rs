@@ -19,6 +19,7 @@ impl Space for State {
 
 impl State {
     pub fn init(
+        // set inner 
         &mut self,
         endcoin_mint: Pubkey,
         gaiacoin_mint: Pubkey,

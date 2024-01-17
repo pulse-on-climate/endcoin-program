@@ -5,16 +5,14 @@ seeds = false
 skip-lint = false
 
 [programs.localnet]
-endcoin = "AAc5RWfWdn24hN9mWRTQr18TcHz5JyPnjATwamaCZAiF"
-endcoin-amm = "4gqKMD7ft5KVishh1NKUmn5L6tCtbZUfpTD4dekVP5uZ"
-rectifier = "GmQxUzSJpCxLKmHZUVpbJTVSpkyes9FsG9fK7LFKdHb7"
+endcoin = "92ovUpDZiVec1p9fNJczGMd73jbHG5dBkkSbd5Hm6QYz"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Localnet"
-wallet = "/Users/andrew/.config/solana/id.json"
+cluster = "Devnet"
+wallet = "../endcoin/wba-wallet.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"

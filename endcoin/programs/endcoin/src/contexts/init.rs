@@ -1,9 +1,8 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::InitializeAccount;
 use anchor_spl::token_interface::{Mint, TokenInterface};
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::metadata::{create_metadata_accounts_v3,
- CreateMetadataAccountsV3, Metadata, mpl_token_metadata,
+ CreateMetadataAccountsV3, Metadata, mpl_token_metadata, MetadataAccount,
 };
 use mpl_token_metadata::types::DataV2;
 
@@ -13,7 +12,7 @@ use crate::State;
 #[derive(Accounts)]
 #[instruction(seed: u64)]
 pub struct Init<'info> {
-    /// CHECK: This account is only used for signing purposes
+
     #[account(mut)] pub auth: Signer<'info>,
     #[account(mut)] pub payer: Signer<'info>,
     #[account(
@@ -42,11 +41,10 @@ pub struct Init<'info> {
             metadata_program.key().as_ref(),
             endcoin_mint.key().as_ref(),
         ],
-        bump,
-        seeds::program = metadata_program.key()
+        bump
     )]
-    /// CHECK:
-    pub endcoin_metadata: UncheckedAccount<'info>,
+
+    pub endcoin_metadata: Account<'info, MetadataAccount>,
     #[account(
         mut,
         seeds = [
@@ -54,11 +52,10 @@ pub struct Init<'info> {
             metadata_program.key().as_ref(),
             gaiacoin_mint.key().as_ref(),
         ],
-        bump,
-        seeds::program = metadata_program.key()
+        bump
     )]
-    /// CHECK:
-    pub gaiacoin_metadata: UncheckedAccount<'info>,
+
+    pub gaiacoin_metadata: Account<'info, MetadataAccount>,
     #[account(
         init,
         payer=payer,
@@ -121,6 +118,7 @@ impl<'info> Init<'info> {
 
     pub fn init(&mut self, bumps: &InitBumps
     ) -> Result<()> {
+        // method to initialize account state 
         self.state.init(
             self.endcoin_mint.key(),
             self.gaiacoin_mint.key(),
@@ -131,7 +129,7 @@ impl<'info> Init<'info> {
             bumps.endcoin_mint, 
             bumps.gaiacoin_mint,
             bumps.state
-        );
+        )?;
 
         Ok(())
     }
