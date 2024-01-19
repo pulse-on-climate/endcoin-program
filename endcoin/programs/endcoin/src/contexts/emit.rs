@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 use anchor_spl::{token_interface::{TokenAccount, Mint, TokenInterface, mint_to, MintTo}, associated_token::AssociatedToken};
-use crate::State;
+// use crate::State;
 
 #[derive(Accounts)]
 pub struct MintTokens<'info> {
@@ -43,7 +43,6 @@ pub struct MintTokens<'info> {
     pub token_program: Interface<'info, TokenInterface>,
     pub associated_token_program: Program<'info, AssociatedToken>,
 }
-
 
 impl<'info> MintTokens<'info> {
     pub fn mint_tokens(

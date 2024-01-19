@@ -5,13 +5,13 @@ seeds = false
 skip-lint = false
 
 [programs.localnet]
-endcoin = "92ovUpDZiVec1p9fNJczGMd73jbHG5dBkkSbd5Hm6QYz"
+endcoin = "Gm7fXnKwxt8pic7Ww98BDJRsf6tABmzeEpoRQiaceriu"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Devnet"
+cluster = "Localnet"
 wallet = "../endcoin/wba-wallet.json"
 
 [scripts]
