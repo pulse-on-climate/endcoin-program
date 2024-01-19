@@ -9,9 +9,9 @@ import wallet from "../wba-wallet.json"
 import { getAssociatedTokenAddressSync } from "@solana/spl-token";
 import bs58 from "bs58";
 
+const TOKEN_METADATA_PROGRAM_ID = new anchor.web3.PublicKey("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
 const program = anchor.workspace.Endcoin as Program<Endcoin>;
 const provider = anchor.getProvider();
-const metadata = "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
 const seed = new anchor.BN(randomBytes(8));
 
 const auth = anchor.web3.Keypair.generate();
@@ -30,7 +30,6 @@ let [tokenAuth] =  anchor.web3.PublicKey.findProgramAddressSync([Buffer.from("en
 // let [endcoinMetadata] =  anchor.web3.PublicKey.findProgramAddressSync([Buffer.from("endcoinmetadata")], program.programId);
 // let [gaiacoinMetadata] =  anchor.web3.PublicKey.findProgramAddressSync([Buffer.from("gaiacoinmetadata")], program.programId);
 
-
 // mints
 let endcoinMint =  anchor.web3.Keypair.generate();
 let gaiacoinMint =  anchor.web3.Keypair.generate();
@@ -43,6 +42,24 @@ let gaiacoinMetadata =  anchor.web3.Keypair.generate();
 const vaultEndcoin = getAssociatedTokenAddressSync(endcoinMint.publicKey, payer.publicKey);
 const vaultGaiacoin =  getAssociatedTokenAddressSync(gaiacoinMint.publicKey, payer.publicKey);
 const vaultLp =  getAssociatedTokenAddressSync(lpMint.publicKey, payer.publicKey);
+
+
+const getMetadata = async (mint: anchor.web3.PublicKey): Promise<anchor.web3.PublicKey> => {
+  return (
+    anchor.web3.PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("metadata"),
+        TOKEN_METADATA_PROGRAM_ID.toBuffer(),
+        mint.toBuffer(),
+      ],
+      TOKEN_METADATA_PROGRAM_ID
+    )
+  )[0];
+};
+
+
+
+
 
 describe("endcoin", () => {
 
@@ -68,9 +85,12 @@ describe("endcoin", () => {
   it("Is initialized!", async () => {
 
 
+    // use this to get the metadata assigned to the mint. 
+    // const metadata = await getMetadata(mint);
+    // console.log("Metadata", metadata.toBase58());
 
     // Add your test here.
-    const tx = await program.methods.init(seed).accounts(
+    const tx = await program.methods.init().accounts(
       {
         auth: auth.publicKey,
         payer: payer.publicKey,
@@ -85,7 +105,7 @@ describe("endcoin", () => {
         vaultGaiacoin,
         vaultLp,
         state,
-        metadataProgram: metadata,
+        metadataProgram: TOKEN_METADATA_PROGRAM_ID,
       }
     ).signers([auth, payer]).rpc({skipPreflight: true}).catch((err) => {
       console.log("err:", err);

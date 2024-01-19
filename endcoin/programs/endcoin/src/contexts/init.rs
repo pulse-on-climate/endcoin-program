@@ -53,25 +53,8 @@ pub struct Init<'info> {
     )] pub lp_mint: InterfaceAccount<'info, Mint>,
 
     // METADATA //
-    #[account(
-        init_if_needed,
-        payer = payer,  
-        seeds = [
-            b"endcoinmetadata".as_ref()
-        ],
-        bump,
-        space = State::INIT_SPACE
-    )] pub endcoin_metadata: Account<'info, MetadataAccount>,
-    
-    #[account(
-        init_if_needed,
-        payer = payer,  
-        seeds = [
-            b"gaiacoinmetadata".as_ref()
-        ],
-        bump,
-        space = State::INIT_SPACE
-    )] pub gaiacoin_metadata: Account<'info, MetadataAccount>,
+    #[account(mut)] pub endcoin_metadata: Account<'info, MetadataAccount>,
+    #[account(mut)] pub gaiacoin_metadata: Account<'info, MetadataAccount>,
     
     // STATES / CONFIGS // 
     //  STATE
@@ -126,7 +109,6 @@ impl<'info> Init<'info> {
 
     pub fn init(
         &mut self, 
-        seed: u64,
         bumps: &InitBumps
     ) -> Result<()> {
        msg!("Initializing Endcoin Mint Account");
@@ -162,14 +144,14 @@ impl<'info> Init<'info> {
         //     Some(&self.auth.key())
         // )?;
         // state
-        self.state.set_inner(
-            State {
-                endcoin_mint_bump: bumps.endcoin_mint, 
-                gaiacoin_mint_bump: bumps.gaiacoin_mint,
-                state_bump: bumps.state
-            }
+        // self.state.set_inner(
+        //     State {
+        //         endcoin_mint_bump: bumps.endcoin_mint, 
+        //         gaiacoin_mint_bump: bumps.gaiacoin_mint,
+        //         state_bump: bumps.state
+        //     }
 
-        );
+        // );
         Ok(())
     }
     

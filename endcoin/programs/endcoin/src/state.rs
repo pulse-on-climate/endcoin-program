@@ -2,10 +2,12 @@ use anchor_lang::prelude::*;
 
 #[account]
 pub struct State {
-    // pub endcoin_metadata_bump: u8,
-    // pub gaiacoin_metadata_bump: u8,
+    pub token_auth_bump: u8,
     pub endcoin_mint_bump: u8,
     pub gaiacoin_mint_bump: u8,
+    pub lp_mint_bump: u8,
+    pub endcoin_metadata_bump: u8,
+    pub gaiacoin_metadata_bump: u8,
     pub state_bump: u8,
 }
 

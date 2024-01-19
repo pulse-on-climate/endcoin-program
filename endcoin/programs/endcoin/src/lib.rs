@@ -17,8 +17,8 @@ pub mod endcoin {
     use super::*;
     
 
-    pub fn init(ctx: Context<Init>,  seed: u64) -> Result<()> {
-        ctx.accounts.init(seed, &ctx.bumps)?;
+    pub fn init(ctx: Context<Init>) -> Result<()> {
+        ctx.accounts.init(&ctx.bumps)?;
         Ok(())
     }
     
