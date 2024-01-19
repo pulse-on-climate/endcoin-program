@@ -2,16 +2,21 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { Endcoin } from "../target/types/endcoin";
-import { MPL_TOKEN_METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
 import { randomBytes } from "crypto";
 import { BN } from "bn.js";
-import wallet from "../wba-wallet.json"
 import { getAssociatedTokenAddressSync } from "@solana/spl-token";
 import bs58 from "bs58";
+import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet";
 
-const TOKEN_METADATA_PROGRAM_ID = new anchor.web3.PublicKey("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
+const provider = anchor.AnchorProvider.env();
+anchor.setProvider(provider);
+
 const program = anchor.workspace.Endcoin as Program<Endcoin>;
-const provider = anchor.getProvider();
+
+console.log("Provider", provider.connection.getVersion());
+
+const wallet = provider.wallet as NodeWallet
+
 const seed = new anchor.BN(randomBytes(8));
 
 const auth = anchor.web3.Keypair.generate();
@@ -34,9 +39,6 @@ let [tokenAuth] =  anchor.web3.PublicKey.findProgramAddressSync([Buffer.from("en
 let endcoinMint =  anchor.web3.Keypair.generate();
 let gaiacoinMint =  anchor.web3.Keypair.generate();
 let lpMint =  anchor.web3.Keypair.generate();
-// metadata 
-let endcoinMetadata =  anchor.web3.Keypair.generate();
-let gaiacoinMetadata =  anchor.web3.Keypair.generate();
 
 // vaults
 const vaultEndcoin = getAssociatedTokenAddressSync(endcoinMint.publicKey, payer.publicKey);
@@ -44,28 +46,7 @@ const vaultGaiacoin =  getAssociatedTokenAddressSync(gaiacoinMint.publicKey, pay
 const vaultLp =  getAssociatedTokenAddressSync(lpMint.publicKey, payer.publicKey);
 
 
-const getMetadata = async (mint: anchor.web3.PublicKey): Promise<anchor.web3.PublicKey> => {
-  return (
-    anchor.web3.PublicKey.findProgramAddressSync(
-      [
-        Buffer.from("metadata"),
-        TOKEN_METADATA_PROGRAM_ID.toBuffer(),
-        mint.toBuffer(),
-      ],
-      TOKEN_METADATA_PROGRAM_ID
-    )
-  )[0];
-};
-
-
-
-
-
 describe("endcoin", () => {
-
-
-  // Configure the client to use the local cluster.
-  anchor.setProvider(anchor.AnchorProvider.env());
 
   // Helper Scripts
   const confirm = async (signature: string): Promise<string> => {
@@ -82,9 +63,27 @@ describe("endcoin", () => {
     console.log(`Your transaction signature: https://explorer.solana.com/transaction/${signature}?cluster=custom&customUrl=http%3A%2F%2Flocalhost%3A8899`);
     return signature;
   }
+
+ //Airdrop tokens to both accounts
+ it("Airdrop tokens to auth and payer", async () => {
+  const tx_maker = await provider.connection.requestAirdrop(
+    payer.publicKey,
+    anchor.web3.LAMPORTS_PER_SOL*10
+  );
+  await provider.connection.confirmTransaction(tx_maker);
+  const tx_taker = await provider.connection.requestAirdrop(
+    auth.publicKey,
+    anchor.web3.LAMPORTS_PER_SOL*10
+  );
+  await provider.connection.confirmTransaction(tx_taker);
+  console.log(`Maker airdrop tx: ${tx_maker}`);
+  console.log(`Maker airdrop tx: ${tx_taker}`);
+});
+
+
+
+
   it("Is initialized!", async () => {
-
-
     // use this to get the metadata assigned to the mint. 
     // const metadata = await getMetadata(mint);
     // console.log("Metadata", metadata.toBase58());
@@ -94,24 +93,14 @@ describe("endcoin", () => {
       {
         auth: auth.publicKey,
         payer: payer.publicKey,
-        tokenAuth,
         endcoinMint: endcoinMint.publicKey,
         gaiacoinMint: gaiacoinMint.publicKey,
-        endcoinMetadata: endcoinMetadata.publicKey,
-        gaiacoinMetadata: gaiacoinMetadata.publicKey,
-        ammconfig,
         lpMint: lpMint.publicKey,
         vaultEndcoin,
         vaultGaiacoin,
         vaultLp,
-        state,
-        metadataProgram: TOKEN_METADATA_PROGRAM_ID,
       }
-    ).signers([auth, payer]).rpc({skipPreflight: true}).catch((err) => {
-      console.log("err:", err);
-  })
-  
-  .then(confirm).then(log);
+    ).signers([auth, payer, lpMint, endcoinMint, gaiacoinMint]).rpc({skipPreflight: true});
 
     console.log("Your transaction signature", tx);
   });

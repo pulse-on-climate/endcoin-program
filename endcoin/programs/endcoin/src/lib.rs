@@ -10,7 +10,7 @@ pub mod ammconfig;
 
 pub use contexts::*;
 pub mod contexts;
-declare_id!("Gm7fXnKwxt8pic7Ww98BDJRsf6tABmzeEpoRQiaceriu");
+declare_id!("FyUcNDuXQPCKfSuRGznjPjaUtgFjTAX857qaL7CfQgVG");
 
 #[program]
 pub mod endcoin {
@@ -18,7 +18,7 @@ pub mod endcoin {
     
 
     pub fn init(ctx: Context<Init>) -> Result<()> {
-        ctx.accounts.init(&ctx.bumps)?;
+        ctx.accounts.init()?;
         Ok(())
     }
     

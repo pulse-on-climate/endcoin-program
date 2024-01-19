@@ -1,86 +1,45 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token_interface::{Mint, TokenInterface, TokenAccount};
 use anchor_spl::associated_token::AssociatedToken;
-use anchor_spl::metadata::{ Metadata, MetadataAccount};
 
-
-use crate::{State, AmmConfig};
 
 // initialize endcoin 
 #[derive(Accounts)]
-#[instruction(seed:u64)]
 pub struct Init<'info> {
     // SIGNERS // 
     #[account(mut)] pub auth: Signer<'info>,
     #[account(mut)] pub payer: Signer<'info>,
     // MINTS //
 
-    // single pda 
-    /// CHECK THIS - used to create pda for endcoin mints
-    #[account(
-        mut,
-        seeds = [b"endcoin".as_ref()],
-        bump,
-    )] pub token_auth: UncheckedAccount<'info>,
 
     #[account(
         init,
         payer = payer,
-        mint::decimals = 6,
-        mint::authority = token_auth,
-        mint::freeze_authority = token_auth,
-        seeds = [b"endcoin".as_ref()],
-        bump
-    )] pub endcoin_mint: InterfaceAccount<'info, Mint>,
-    
-    #[account(
-        init,
-        payer = payer,
-        mint::decimals = 6,
-        mint::authority = token_auth,
-        mint::freeze_authority = token_auth,
-        seeds = [b"gaiacoin".as_ref()],
-        bump
-    )] pub gaiacoin_mint: InterfaceAccount<'info, Mint>,
-    
-    #[account(
-        init,
-        payer = payer,
-        seeds = [b"lp", ammconfig.key().as_ref()],
-        bump,
         mint::decimals = 6,
         mint::authority = auth,
-    )] pub lp_mint: InterfaceAccount<'info, Mint>,
-
-    // METADATA //
-    #[account(mut)] pub endcoin_metadata: Account<'info, MetadataAccount>,
-    #[account(mut)] pub gaiacoin_metadata: Account<'info, MetadataAccount>,
+        mint::freeze_authority = auth,
+    )] pub endcoin_mint: Box<InterfaceAccount<'info, Mint>>,
     
-    // STATES / CONFIGS // 
-    //  STATE
     #[account(
-        init_if_needed,
-        payer=payer,
-        seeds = [b"state".as_ref()],
-        bump,
-        space = State::INIT_SPACE
-    )] pub state: Account<'info, State>,
-
-    // AMMCONFIG
-    #[account(init,
+        init,
         payer = payer,
-        seeds = [b"ammconfig", seed.to_le_bytes().as_ref()],
-        bump,
-        space = AmmConfig::INIT_SPACE   
-        )]
-        pub ammconfig: Account<'info, AmmConfig>, 
+        mint::decimals = 6,
+        mint::authority = auth,
+        mint::freeze_authority = auth,
+    )] pub gaiacoin_mint: Box<InterfaceAccount<'info, Mint>>,
+    
+    #[account(
+        init,
+        payer = payer,
+        mint::decimals = 6,
+        mint::authority = auth,
+    )] pub lp_mint: Box<InterfaceAccount<'info, Mint>>,
 
     // PROGRAMS // 
     pub system_program: Program<'info, System>,
     pub token_program: Interface<'info, TokenInterface>,
     pub associated_token_program: Program<'info, AssociatedToken>, 
     pub rent: Sysvar<'info, Rent>,
-    pub metadata_program: Program<'info, Metadata>,
     // 
     #[account(
         init,
@@ -89,27 +48,27 @@ pub struct Init<'info> {
         associated_token::authority = auth,
     )] pub vault_lp: InterfaceAccount<'info, TokenAccount>,
 
-        #[account(
-            init,
-            payer = payer,
-            associated_token::mint = endcoin_mint,
-            associated_token::authority = auth,
-        )]
-        pub vault_endcoin: InterfaceAccount<'info, TokenAccount>,
-        #[account(
-            init,
-            payer = payer,
-            associated_token::mint = gaiacoin_mint,
-            associated_token::authority = auth,
-        )]
-        pub vault_gaiacoin: InterfaceAccount<'info, TokenAccount>,
+    #[account(
+        init,
+        payer = payer,
+        associated_token::mint = endcoin_mint,
+        associated_token::authority = auth,
+    )]
+    pub vault_endcoin: InterfaceAccount<'info, TokenAccount>,
+        
+    #[account(
+        init,
+        payer = payer,
+        associated_token::mint = gaiacoin_mint,
+        associated_token::authority = auth,
+    )]
+    pub vault_gaiacoin: InterfaceAccount<'info, TokenAccount>,
 }
 
 impl<'info> Init<'info> {
 
     pub fn init(
         &mut self, 
-        bumps: &InitBumps
     ) -> Result<()> {
        msg!("Initializing Endcoin Mint Account");
         // // endcoin mint
