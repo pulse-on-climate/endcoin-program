@@ -14,12 +14,21 @@ pub struct Init<'info> {
     #[account(mut)] pub auth: Signer<'info>,
     #[account(mut)] pub payer: Signer<'info>,
     // MINTS //
+
+    // single pda 
+    /// CHECK THIS - used to create pda for endcoin mints
+    #[account(
+        mut,
+        seeds = [b"endcoin".as_ref()],
+        bump,
+    )] pub token_auth: UncheckedAccount<'info>,
+
     #[account(
         init,
         payer = payer,
         mint::decimals = 6,
-        mint::authority = auth,
-        mint::freeze_authority = auth,
+        mint::authority = token_auth,
+        mint::freeze_authority = token_auth,
         seeds = [b"endcoin".as_ref()],
         bump
     )] pub endcoin_mint: InterfaceAccount<'info, Mint>,
@@ -28,8 +37,8 @@ pub struct Init<'info> {
         init,
         payer = payer,
         mint::decimals = 6,
-        mint::authority = auth,
-        mint::freeze_authority = auth,
+        mint::authority = token_auth,
+        mint::freeze_authority = token_auth,
         seeds = [b"gaiacoin".as_ref()],
         bump
     )] pub gaiacoin_mint: InterfaceAccount<'info, Mint>,
@@ -72,7 +81,7 @@ pub struct Init<'info> {
         seeds = [b"state".as_ref()],
         bump,
         space = State::INIT_SPACE
-    )] pub state: Box<Account<'info, State>>,
+    )] pub state: Account<'info, State>,
 
     // AMMCONFIG
     #[account(init,
@@ -81,7 +90,8 @@ pub struct Init<'info> {
         bump,
         space = AmmConfig::INIT_SPACE   
         )]
-        pub ammconfig: Box<Account<'info, AmmConfig>>, 
+        pub ammconfig: Account<'info, AmmConfig>, 
+
     // PROGRAMS // 
     pub system_program: Program<'info, System>,
     pub token_program: Interface<'info, TokenInterface>,
@@ -119,7 +129,7 @@ impl<'info> Init<'info> {
         seed: u64,
         bumps: &InitBumps
     ) -> Result<()> {
-
+       msg!("Initializing Endcoin Mint Account");
         // // endcoin mint
         // msg!("Initializing Endcoin Mint Account");
         // msg!("mint: {}", self.endcoin_mint.key());   
