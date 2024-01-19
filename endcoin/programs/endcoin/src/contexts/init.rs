@@ -72,7 +72,7 @@ pub struct Init<'info> {
         seeds = [b"state".as_ref()],
         bump,
         space = State::INIT_SPACE
-    )] pub state: Account<'info, State>,
+    )] pub state: Box<Account<'info, State>>,
 
     // AMMCONFIG
     #[account(init,
@@ -81,7 +81,7 @@ pub struct Init<'info> {
         bump,
         space = AmmConfig::INIT_SPACE   
         )]
-        pub ammconfig: Account<'info, AmmConfig>, 
+        pub ammconfig: Box<Account<'info, AmmConfig>>, 
     // PROGRAMS // 
     pub system_program: Program<'info, System>,
     pub token_program: Interface<'info, TokenInterface>,

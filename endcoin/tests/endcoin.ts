@@ -76,9 +76,11 @@ describe("endcoin", () => {
         state,
         metadataProgram: metadata,
       }
-    ).signers([auth, payer]).rpc().catch((err) => {
+    ).signers([auth, payer]).rpc({skipPreflight: true}).catch((err) => {
       console.log("err:", err);
-  }).then(confirm).then(log);
+  })
+  
+  .then(confirm).then(log);
 
     console.log("Your transaction signature", tx);
   });
