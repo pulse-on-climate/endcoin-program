@@ -11,7 +11,7 @@ pub mod ammconfig;
 
 pub use contexts::*;
 pub mod contexts;
-declare_id!("FyUcNDuXQPCKfSuRGznjPjaUtgFjTAX857qaL7CfQgVG");
+declare_id!("Dm8CMAiXHEcpxsN1p69BGy1veoUvfTbCgjv9eiH3U7eH");
 
 #[program]
 pub mod endcoin {
@@ -38,10 +38,20 @@ pub mod endcoin {
     }
 
     pub fn create_pool(ctx: Context<CreatePool>) -> Result<()> {
-        ctx.accounts.create_pool()
+        ctx.accounts.create_pool()?;
+        Ok(())
     }
     pub fn create_sst(ctx: Context<CreateSST>) -> Result<()> {
-        ctx.accounts.create_sst()
+        ctx.accounts.create_sst()?;
+        Ok(())
+    }
+    pub fn create_endcoin_metadata(ctx: Context<CreateMetadata>) -> Result<()> {
+        ctx.accounts.create_endcoin_metadata(ctx.bumps)?;
+        Ok(())
+    }
+    pub fn create_gaiacoin_metadata(ctx: Context<CreateMetadata>) -> Result<()> {
+        ctx.accounts.create_gaiacoin_metadata(ctx.bumps)?;
+        Ok(())
     }
     pub fn deposit_liquidity(
         ctx: Context<DepositLiquidity>,
@@ -51,10 +61,7 @@ pub mod endcoin {
         ctx.accounts.deposit_liquidity(amount_a, amount_b, &ctx.bumps)
     }
 
-    // pub fn withdraw_liquidity(ctx: Context<WithdrawLiquidity>, amount: u64) -> Result<()> {
-    //     ctx.accounts.withdraw_liquidity(amount, &ctx.bumps)
-    // }
-
+    
     pub fn swap_exact_tokens_for_tokens(
         ctx: Context<SwapExactTokensForTokens>,
         swap_a: bool,

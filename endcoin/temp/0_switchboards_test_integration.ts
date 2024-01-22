@@ -31,7 +31,7 @@ describe("switchboard-feed-client test", () => {
     aggregatorAccount = new AggregatorAccount(switchboard, AGGREGATOR_PUBKEY);
   });
 
-  it("Reads a Switchboard data feed", async () => {
+  xit("Reads a Switchboard data feed", async () => {
     const aggregator = await aggregatorAccount.loadData();
     const latestValue = AggregatorAccount.decodeLatestValue(aggregator);
 
@@ -53,7 +53,7 @@ describe("switchboard-feed-client test", () => {
   });
 
   /** Example showing how to read a history buffer on-chain for an existing feed with an existing history buffer with pre-populated samples. (This will only work on devnet) */
-  it("Reads an aggregator history buffer", async () => {
+  xit("Reads an aggregator history buffer", async () => {
     const aggregator = await aggregatorAccount.loadData();
     
     // TODO: Verify the value in the program logs matches the history samples

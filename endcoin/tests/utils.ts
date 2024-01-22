@@ -123,6 +123,8 @@ export interface TestValues {
   poolAccountB: PublicKey;
   holderAccountA: PublicKey;
   holderAccountB: PublicKey;
+  endcoinMetadata: PublicKey,
+  gaiacoinMetadata: PublicKey, 
 }
 
 type TestValuesDefaults = {
@@ -173,6 +175,18 @@ export function createValues(defaults?: TestValuesDefaults): TestValues {
     ],
     anchor.workspace.Endcoin.programId
   )[0];
+  const endcoinMetadata = PublicKey.findProgramAddressSync(
+    [
+      Buffer.from("endcoin_metadata")
+    ],
+    anchor.workspace.Endcoin.programId
+  )[0];
+  const gaiacoinMetadata = PublicKey.findProgramAddressSync(
+    [
+      Buffer.from("gaiacoin_metadata")
+    ],
+    anchor.workspace.Endcoin.programId
+  )[0];
   return {
     id,
     fee: 500,
@@ -183,6 +197,8 @@ export function createValues(defaults?: TestValuesDefaults): TestValues {
     mintLiquidity,
     poolKey,
     poolAuthority,
+    endcoinMetadata,
+    gaiacoinMetadata, 
     poolAccountA: getAssociatedTokenAddressSync(
       mintAKeypair.publicKey,
       poolAuthority,

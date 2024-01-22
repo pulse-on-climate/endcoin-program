@@ -45,3 +45,25 @@ pub struct SST {
 impl SST {
     pub const LEN: usize = 8 + 4 + 1;
 }
+
+#[account]
+#[derive(Default)]
+pub struct EndcoinMetadata {
+    /// temperature value in degrees celsius
+    pub temperature: f32,
+    pub created: bool
+}
+impl EndcoinMetadata {
+    pub const LEN: usize = 8 + 4 + 1;
+}
+
+#[account]
+#[derive(Default)]
+pub struct GaiacoinMetadata {
+    /// temperature value in degrees celsius
+    pub temperature: f32,
+    pub created: bool
+}
+impl GaiacoinMetadata {
+    pub const LEN: usize = 8 + 4 + 1;
+}

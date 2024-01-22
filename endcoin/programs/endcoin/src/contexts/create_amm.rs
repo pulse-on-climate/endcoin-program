@@ -2,22 +2,6 @@ use anchor_lang::prelude::*;
 
 use crate::{errors::*, state::Amm};
 
-
-impl<'info> CreateAmm<'info> {
-pub fn create_amm(
-
-    &mut self, 
-    id: Pubkey, 
-    fee: u16
-) -> Result<()> {
-        let amm = &mut self.amm;
-        amm.id = id;
-        amm.admin = self.admin.key();
-        amm.fee = fee;
-
-        Ok(())
-    }
-}
 #[derive(Accounts)]
 #[instruction(id: Pubkey, fee: u16)]
 pub struct CreateAmm<'info> {
@@ -44,3 +28,20 @@ pub struct CreateAmm<'info> {
     /// Solana ecosystem accounts
     pub system_program: Program<'info, System>,
 }
+
+
+impl<'info> CreateAmm<'info> {
+    pub fn create_amm(
+    
+        &mut self, 
+        id: Pubkey, 
+        fee: u16
+    ) -> Result<()> {
+            let amm = &mut self.amm;
+            amm.id = id;
+            amm.admin = self.admin.key();
+            amm.fee = fee;
+    
+            Ok(())
+        }
+    }
