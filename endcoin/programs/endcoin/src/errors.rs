@@ -2,20 +2,24 @@ use anchor_lang::error_code;
 
 #[error_code]
 pub enum AmmError {
-    #[msg("Default Error")]
-    DefaultError,
-    #[msg("Fee is bigger than 100")]
+    #[msg("Invalid fee value")]
     InvalidFee,
-    #[msg("Invalid authority")]
-    InvalidAuthority,
-    #[msg("No authority set")]
-    NoAuthoritySet,
-    #[msg("Pool is locked")]
-    PoolLocked,
-    #[msg("Offer expired")]
-    OfferExpired,
-    #[msg("Zero balance")]
-    ZeroBalance,
-    #[msg("Slippage Exceeded")]
-    SlippageExceeded,
+
+    #[msg("Invalid mint for the pool")]
+    InvalidMint,
+
+    #[msg("Depositing too little liquidity")]
+    DepositTooSmall,
+
+    #[msg("Output is below the minimum expected")]
+    OutputTooSmall,
+
+    #[msg("Invariant does not hold")]
+    InvariantViolated,
+}
+
+#[error_code]
+pub enum SstError {
+    #[msg("SST Already Initialized")]
+    AlreadyInitialized,
 }

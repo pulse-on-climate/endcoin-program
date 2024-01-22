@@ -1,37 +1,47 @@
 use anchor_lang::prelude::*;
+#[account]
+#[derive(Default)]
+pub struct Amm {
+
+    /// The primary key of the AMM
+    pub id: Pubkey,
+    /// Account that has admin authority over the AMM
+    pub admin: Pubkey,
+    /// The LP fee taken on each trade, in basis points
+    pub fee: u16
+
+}
+
+impl Amm {
+
+    pub const LEN: usize = 8 + 32 + 32 + 2;
+
+}
 
 #[account]
-pub struct State {
-    pub token_auth_bump: u8,
-    pub endcoin_mint_bump: u8,
-    pub gaiacoin_mint_bump: u8,
-    pub lp_mint_bump: u8,
-    pub endcoin_metadata_bump: u8,
-    pub gaiacoin_metadata_bump: u8,
-    pub state_bump: u8,
+#[derive(Default)]
+pub struct Pool {
+
+    /// Primary key of the AMM
+    pub amm: Pubkey,
+    /// Mint of token A - Endcoin
+    pub mint_a: Pubkey,
+    /// Mint of token B - Gaiacoin
+    pub mint_b: Pubkey
+
 }
 
-impl Space for State {
-    const INIT_SPACE: usize =  8 + 8 + 32*2 + 2 + 1 + 1 + 1 + 1 + 1;
+impl Pool {
+    pub const LEN: usize = 8 + 32 + 32 + 32;
 }
 
-impl State {
-    pub fn init(
-        &mut self,
-        auth_bump: u8,
-
-        // endcoin_metadata_bump: u8,
-        // gaiacoin_metadata_bump: u8,
-        endcoin_mint_bump: u8,
-        gaiacoin_mint_bump: u8,
-        state_bump: u8
-    ) -> Result<()> {
-        // self.endcoin_metadata = endcoin_metadata;
-        // self.gaiacoin_metadata = gaiacoin_metadata;
-        // self.endcoin_metadata_bump = endcoin_metadata_bump;
-        // self.gaiacoin_metadata_bump = gaiacoin_metadata_bump;
-
-
-        Ok(())
-    }
+#[account]
+#[derive(Default)]
+pub struct SST {
+    /// temperature value in degrees celsius
+    pub temperature: f32,
+    pub created: bool
+}
+impl SST {
+    pub const LEN: usize = 8 + 4 + 1;
 }

@@ -11,8 +11,11 @@ endcoin = "FyUcNDuXQPCKfSuRGznjPjaUtgFjTAX857qaL7CfQgVG"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Localnet"
+cluster = "devnet"
 wallet = "/Users/andrew/.config/solana/id.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+
+[test.validator]
+url = "https://api.mainnet-beta.solana.com"

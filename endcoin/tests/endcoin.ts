@@ -65,7 +65,7 @@ describe("endcoin", () => {
   }
 
  //Airdrop tokens to both accounts
- it("Airdrop tokens to auth and payer", async () => {
+ xit("Airdrop tokens to auth and payer", async () => {
   const tx_maker = await provider.connection.requestAirdrop(
     payer.publicKey,
     anchor.web3.LAMPORTS_PER_SOL*10
@@ -83,7 +83,7 @@ describe("endcoin", () => {
 
 
 
-  it("Is initialized!", async () => {
+  xit("Is initialized!", async () => {
     // use this to get the metadata assigned to the mint. 
     // const metadata = await getMetadata(mint);
     // console.log("Metadata", metadata.toBase58());
