@@ -1,7 +1,7 @@
 import * as anchor from "@project-serum/anchor";
 import { Program } from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
-import { AmmTutorial } from "../target/types/amm_tutorial";
+import { Endcoin } from "../target/types/endcoin";
 import { TestValues, createValues, expectRevert, mintingTokens } from "./utils";
 
 describe("Create pool", () => {
@@ -9,7 +9,7 @@ describe("Create pool", () => {
   const connection = provider.connection;
   anchor.setProvider(provider);
 
-  const program = anchor.workspace.AmmTutorial as Program<AmmTutorial>;
+  const program = anchor.workspace.Endcoin as Program<Endcoin>;
 
   let values: TestValues;
 

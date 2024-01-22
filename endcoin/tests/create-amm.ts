@@ -9,7 +9,7 @@ describe("Create AMM", () => {
   const connection = provider.connection;
   anchor.setProvider(provider);
 
-  const program = anchor.workspace.AmmTutorial as Program<Endcoin>;
+  const program = anchor.workspace.Endcoin as Program<Endcoin>;
 
   let values: TestValues;
 
