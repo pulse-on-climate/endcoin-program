@@ -1,7 +1,36 @@
 use anchor_lang::{prelude::*, solana_program};
 use switchboard_solana::{AggregatorAccountData, AggregatorHistoryBuffer, SwitchboardDecimal};
 use std::convert::TryInto;
+use crate::errors::SwitchboardClientError;
 
+#[derive(Clone, AnchorSerialize, AnchorDeserialize)]
+pub struct ReadFeedParams {
+pub max_confidence_interval: Option<f64>,
+}
+
+// READ FEED
+#[derive(Accounts)]
+#[instruction(params: ReadFeedParams)]
+pub struct Switchboard<'info> {
+pub aggregator: AccountLoader<'info, AggregatorAccountData>,
+}
+
+// READ HISTORY
+#[derive(Accounts)]
+#[instruction(params: ReadHistoryParams)]
+pub struct SwitchboardHistory<'info> {
+#[account(
+    has_one = history_buffer @ SwitchboardClientError::InvalidHistoryBuffer
+)]
+pub aggregator: AccountLoader<'info, AggregatorAccountData>,
+/// CHECK: verified in the aggregator has_one check
+pub history_buffer: AccountInfo<'info>,
+}
+
+#[derive(Clone, AnchorSerialize, AnchorDeserialize)]
+pub struct ReadHistoryParams {
+pub timestamp: Option<i64>,
+}
 
 impl<'info> Switchboard<'info> {
 pub fn read_feed(&mut self, params: ReadFeedParams) -> Result<()> {
@@ -51,47 +80,3 @@ pub fn read_history(&mut self, params: ReadHistoryParams) -> Result<()> {
 }
 }
 
-
-#[error_code]
-#[derive(Eq, PartialEq)]
-pub enum SwitchboardClientError {
-#[msg("Not a valid Switchboard account")]
-InvalidSwitchboardAccount,
-#[msg("Switchboard feed has not been updated in 5 minutes")]
-StaleFeed,
-#[msg("Switchboard feed exceeded provided confidence interval")]
-ConfidenceIntervalExceeded,
-#[msg("History buffer mismatch")]
-InvalidHistoryBuffer,
-}
-
-
-
-#[derive(Clone, AnchorSerialize, AnchorDeserialize)]
-pub struct ReadFeedParams {
-pub max_confidence_interval: Option<f64>,
-}
-
-// READ FEED
-#[derive(Accounts)]
-#[instruction(params: ReadFeedParams)]
-pub struct Switchboard<'info> {
-pub aggregator: AccountLoader<'info, AggregatorAccountData>,
-}
-
-// READ HISTORY
-#[derive(Accounts)]
-#[instruction(params: ReadHistoryParams)]
-pub struct SwitchboardHistory<'info> {
-#[account(
-    has_one = history_buffer @ SwitchboardClientError::InvalidHistoryBuffer
-)]
-pub aggregator: AccountLoader<'info, AggregatorAccountData>,
-/// CHECK: verified in the aggregator has_one check
-pub history_buffer: AccountInfo<'info>,
-}
-
-#[derive(Clone, AnchorSerialize, AnchorDeserialize)]
-pub struct ReadHistoryParams {
-pub timestamp: Option<i64>,
-}
