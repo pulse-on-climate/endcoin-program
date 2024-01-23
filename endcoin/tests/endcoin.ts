@@ -6,7 +6,6 @@ import { randomBytes } from "crypto";
 import { BN } from "bn.js";
 import { getAssociatedTokenAddressSync } from "@solana/spl-token";
 import bs58 from "bs58";
-import NodeWallet from "@coral-xyz/anchor/dist/cjs/nodewallet";
 
 const provider = anchor.AnchorProvider.env();
 anchor.setProvider(provider);
@@ -15,7 +14,7 @@ const program = anchor.workspace.Endcoin as Program<Endcoin>;
 
 console.log("Provider", provider.connection.getVersion());
 
-const wallet = provider.wallet as NodeWallet
+
 
 const seed = new anchor.BN(randomBytes(8));
 

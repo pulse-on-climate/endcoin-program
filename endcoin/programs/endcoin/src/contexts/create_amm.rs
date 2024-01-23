@@ -1,16 +1,15 @@
 use anchor_lang::prelude::*;
-
 use crate::{errors::*, state::Amm};
 
 #[derive(Accounts)]
 #[instruction(id: Pubkey, fee: u16)]
 pub struct CreateAmm<'info> {
     #[account(
-        init,
+        init_if_needed,
         payer = payer,
         space = Amm::LEN,
         seeds = [
-            id.as_ref()
+        b"sample".as_ref(),
         ],
         bump,
         constraint = fee < 10000 @ AmmError::InvalidFee,
@@ -32,16 +31,25 @@ pub struct CreateAmm<'info> {
 
 impl<'info> CreateAmm<'info> {
     pub fn create_amm(
-    
         &mut self, 
         id: Pubkey, 
         fee: u16
     ) -> Result<()> {
-            let amm = &mut self.amm;
-            amm.id = id;
-            amm.admin = self.admin.key();
-            amm.fee = fee;
-    
+        
+        if self.amm.created == true {
+            msg!("AMM Already Exists");
+            return Err(AmmError::AlreadyCreated.into());
+        } else {
+            // set inner values of amm
+            self.amm.set_inner(
+                Amm {
+                    id,
+                    admin: self.admin.key(),
+                    fee,
+                    created: true
+                });
+            msg!("AMM Created, setting State to True");
+        }
             Ok(())
         }
     }

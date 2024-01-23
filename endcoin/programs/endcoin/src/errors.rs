@@ -16,6 +16,9 @@ pub enum AmmError {
 
     #[msg("Invariant does not hold")]
     InvariantViolated,
+
+    #[msg("AMM Already Created")]
+    AlreadyCreated
 }
 
 #[error_code]

@@ -134,7 +134,7 @@ export function createValues(defaults?: TestValuesDefaults): TestValues {
   const id = defaults?.id || Keypair.generate().publicKey;
   const admin = Keypair.generate();
   const ammKey = PublicKey.findProgramAddressSync(
-    [Buffer.from("sample")],
+    [id.toBuffer()],
     anchor.workspace.Endcoin.programId
   )[0];
 

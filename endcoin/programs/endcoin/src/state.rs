@@ -8,13 +8,14 @@ pub struct Amm {
     /// Account that has admin authority over the AMM
     pub admin: Pubkey,
     /// The LP fee taken on each trade, in basis points
-    pub fee: u16
+    pub fee: u16,
 
+    pub created: bool
 }
 
 impl Amm {
 
-    pub const LEN: usize = 8 + 32 + 32 + 2;
+    pub const LEN: usize = 8 + 32 + 32 + 2 + 1;
 
 }
 

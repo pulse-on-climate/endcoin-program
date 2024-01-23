@@ -27,18 +27,8 @@ pub mod endcoin {
         ctx.accounts.read_feed(params)?;
         Ok(())
     }
-    pub fn read_history(ctx: Context<SwitchboardHistory>, params: ReadHistoryParams)  -> Result<()> {
-        ctx.accounts.read_history(params)?;
-        Ok(())
-    }
-
     pub fn create_amm(ctx: Context<CreateAmm>, id: Pubkey, fee: u16) -> Result<()> {
         ctx.accounts.create_amm(id, fee)?;
-        Ok(())
-    }
-
-    pub fn create_pool(ctx: Context<CreatePool>) -> Result<()> {
-        ctx.accounts.create_pool()?;
         Ok(())
     }
     pub fn create_sst(ctx: Context<CreateSST>) -> Result<()> {
