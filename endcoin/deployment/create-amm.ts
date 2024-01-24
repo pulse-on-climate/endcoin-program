@@ -8,11 +8,12 @@ let ANCHOR_PROVIDER_URL = "https://api.devnet.solana.com";
   const provider = anchor.AnchorProvider.env();
   const connection = provider.connection;
   anchor.setProvider(provider);
-
   const program = anchor.workspace.Endcoin as Program<Endcoin>;
 
   let values: TestValues;
   values = createValues();
+
+  // confirm transaction helper
   const confirm = async (signature: string): Promise<string> => {
 
     const block = await provider.connection.getLatestBlockhash();
@@ -22,15 +23,22 @@ let ANCHOR_PROVIDER_URL = "https://api.devnet.solana.com";
     })
     return signature
   }
-  
-  const log = async(signature: string): Promise<string> => {
-    console.log(`Your transaction signature: https://explorer.solana.com/transaction/${signature}?cluster=custom&customUrl=http%3A%2F%2Flocalhost%3A8899`);
-    return signature;
-  }
+    // log transaction helper
+    const log = async(signature: string): Promise<string> => {
+      console.log(`Your transaction signature: https://explorer.solana.com/transaction/${signature}?cluster=devnet`);
+      return signature;
+    }
+  // Create AMM  
   async function create_amm() {
     await program.methods
-      .createAmm(values.id, values.fee)
-      .accounts({ amm: values.ammKey, admin: values.admin.publicKey })
+      .createAmm(
+        values.id, 
+        values.fee
+      )
+      .accounts({ 
+        amm: values.ammKey, 
+        admin: values.admin.publicKey 
+      })
       .rpc({skipPreflight: true}).then(confirm).then(log);
 
     const ammAccount = await program.account.amm.fetch(values.ammKey);
