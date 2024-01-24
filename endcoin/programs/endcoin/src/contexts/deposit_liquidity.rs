@@ -5,30 +5,44 @@ use anchor_spl::{
 };
 use fixed::types::I64F64;
 use fixed_sqrt::FixedSqrt;
+use rust_decimal::{prelude::ToPrimitive, Decimal};
+use rust_decimal_macros::dec;
 
 use crate::{
-    constants::{AUTHORITY_SEED, LIQUIDITY_SEED, MINIMUM_LIQUIDITY},
-    errors::*,
-    state::Pool,
+    constants::{AUTHORITY_SEED, LIQUIDITY_SEED, MINIMUM_LIQUIDITY}, endcoin, errors::*, state::Pool, state::SST
 };
 
 impl<'info> DepositLiquidity<'info> { 
 pub fn deposit_liquidity(
     &mut self,
-    amount_a: u64,
-    amount_b: u64,
     bumps: &DepositLiquidityBumps
 ) -> Result<()> {
+
+    // Calculate the amount of liquidity to mint for endcoin and gaiacoin
+    const DEATH: f64 = 35.000;
+    const ENDRATE: f64 = 1.125;
+    const GAIARATE: f64 = 0.750;
+    let MEAN_TEMP: f64 = SST.temp; // still to include account
+    // Endcoin calculation
+    let endcoin_emission = ((ENDRATE * (DEATH - MEAN_TEMP)) - 1.000).exp();
+    // Gaiacoin calculation
+    let gaiacoin_emission= ((GAIARATE * (MEAN_TEMP)) - 1.000).exp();
+    // Round to 4 decimals
+    let endcoin_emission = (endcoin_emission*1000.0).round() as i64;
+    let gaiacoin_emission = (gaiacoin_emission*1000.0).round() as i64;
+
+    let amount_a = Decimal::new( endcoin_emission, 3);
+    let amount_b = Decimal::new( gaiacoin_emission, 3);
     // Prevent depositing assets the depositor does not own
-    let mut amount_a = if amount_a > self.depositor_account_a.amount {
-        self.depositor_account_a.amount
+    let mut amount_a = if amount_a > self.depositor_account_a.amount.into() {
+        self.depositor_account_a.amount.into()
     } else {
-        amount_a
+        amount_a.to_u64().unwrap()
     };
-    let mut amount_b = if amount_b > self.depositor_account_b.amount {
-        self.depositor_account_b.amount
+    let mut amount_b = if amount_b > self.depositor_account_b.amount.into() {
+        self.depositor_account_b.amount.into()
     } else {
-        amount_b
+        amount_b.to_u64().unwrap()
     };
 
     // Making sure they are provided in the same proportion as existing liquidity

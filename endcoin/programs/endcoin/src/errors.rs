@@ -18,11 +18,30 @@ pub enum AmmError {
     InvariantViolated,
 
     #[msg("AMM Already Created")]
-    AlreadyCreated
+    AlreadyCreated,
 }
 
 #[error_code]
 pub enum SstError {
     #[msg("SST Already Initialized")]
     AlreadyInitialized,
+}
+
+#[error_code]
+pub enum MetadataError {
+    #[msg("Metadata Invalid")]
+    InvalidMetadata,
+}
+
+#[error_code]
+#[derive(Eq, PartialEq)]
+pub enum SwitchboardClientError {
+#[msg("Not a valid Switchboard account")]
+InvalidSwitchboardAccount,
+#[msg("Switchboard feed has not been updated in 5 minutes")]
+StaleFeed,
+#[msg("Switchboard feed exceeded provided confidence interval")]
+ConfidenceIntervalExceeded,
+#[msg("History buffer mismatch")]
+InvalidHistoryBuffer,
 }

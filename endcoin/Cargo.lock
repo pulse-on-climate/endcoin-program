@@ -1465,6 +1465,8 @@ dependencies = [
  "fixed",
  "fixed-sqrt",
  "half",
+ "rust_decimal",
+ "rust_decimal_macros",
  "solana-program",
  "switchboard-solana",
  "toml_datetime",
@@ -2548,7 +2550,7 @@ version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6c11e44798ad209ccdd91fc192f0526a369a01234f7373e1b141c96d7cee4f0e"
 dependencies = [
- "proc-macro-crate 1.3.1",
+ "proc-macro-crate 2.0.0",
  "proc-macro2",
  "quote",
  "syn 2.0.41",
@@ -3195,6 +3197,16 @@ dependencies = [
  "rkyv",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "rust_decimal_macros"
+version = "1.33.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2e43721f4ef7060ebc2c3ede757733209564ca8207f47674181bcd425dd76945"
+dependencies = [
+ "quote",
+ "rust_decimal",
 ]
 
 [[package]]

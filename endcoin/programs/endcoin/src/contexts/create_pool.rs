@@ -60,9 +60,14 @@ pub struct CreatePool<'info> {
         mint::authority = pool_authority,
     )]
     pub mint_liquidity: Box<Account<'info, Mint>>,
-
+    #[account(
+        address = pool.mint_a,
+    )]
     pub mint_a: Box<Account<'info, Mint>>,
-
+    #[account(
+        address = pool.mint_b //set this to state endcoin address 
+        
+    )]
     pub mint_b: Box<Account<'info, Mint>>,
 
     #[account(
@@ -80,6 +85,14 @@ pub struct CreatePool<'info> {
         associated_token::authority = pool_authority,
     )]
     pub pool_account_b: Box<Account<'info, TokenAccount>>,
+
+
+    /// CHECK: Mint authority account
+    #[account(
+        seeds = [b"auth"],
+        bump
+    )]
+    pub mint_authority: UncheckedAccount<'info>,
 
     /// The account paying for all rents
     #[account(mut)]
@@ -104,5 +117,9 @@ impl<'info> CreatePool<'info> {
         pool.mint_b = self.mint_b.key();
 
         Ok(())
+
+        // mint and deposit liquidity to the depositor/initializor ATA then sent to the pool. 
+
+
     }
 }

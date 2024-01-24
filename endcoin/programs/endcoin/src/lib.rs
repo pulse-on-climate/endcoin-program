@@ -31,16 +31,16 @@ pub mod endcoin {
         ctx.accounts.create_amm(id, fee)?;
         Ok(())
     }
+    pub fn create_pool(ctx: Context<CreatePool>) -> Result<()> {
+        ctx.accounts.create_pool()?;
+        Ok(())
+    }
     pub fn create_sst(ctx: Context<CreateSST>) -> Result<()> {
         ctx.accounts.create_sst()?;
         Ok(())
     }
-    pub fn create_endcoin_metadata(ctx: Context<CreateMetadata>) -> Result<()> {
-        ctx.accounts.create_endcoin_metadata(ctx.bumps)?;
-        Ok(())
-    }
-    pub fn create_gaiacoin_metadata(ctx: Context<CreateMetadata>) -> Result<()> {
-        ctx.accounts.create_gaiacoin_metadata(ctx.bumps)?;
+    pub fn create_metadata(ctx: Context<CreateMetadata>, token: u8) -> Result<()> {
+        ctx.accounts.create_metadata(token, ctx.bumps)?;
         Ok(())
     }
     pub fn deposit_liquidity(
@@ -61,11 +61,3 @@ pub mod endcoin {
         ctx.accounts.swap_exact_tokens_for_tokens(swap_a, input_amount, min_output_amount, &ctx.bumps)
     }
 }
-
-
-
-#[derive(Accounts)]
-pub struct Withdraw{}
-
-#[derive(Accounts)]
-pub struct Swap{}
