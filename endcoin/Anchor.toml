@@ -17,7 +17,9 @@ wallet = "/Users/andrew/.config/solana/id.json"
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
 deploy-1 = "yarn run ts-node deployment/create-amm.ts"
-deploy-2 = "yarn run ts-node deployment/create-pool.ts"
+deploy-2 = "yarn run ts-node deployment/02_create-metadata.ts"
+deploy-3 = "yarn run ts-node deployment/create-pool.ts"
+
 
 
 [test.validator]

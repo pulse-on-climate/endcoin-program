@@ -44,10 +44,10 @@ export const mintingTokens = async ({
   mintedAmount?: number;
   decimals?: number;
 }) => {
-  // Mint tokens
- // await connection.confirmTransaction(
-    // await connection.requestAirdrop(creator.publicKey, 10 ** 10)
- // );
+ // Mint tokens
+ await connection.confirmTransaction(
+    await connection.requestAirdrop(creator.publicKey, 10 ** 10)
+  );
   await createMint(
     connection,
     creator,

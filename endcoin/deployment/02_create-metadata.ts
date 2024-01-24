@@ -9,20 +9,15 @@ import { getMint, getAssociatedTokenAddressSync } from "@solana/spl-token";
 const TOKEN_METADATA_PROGRAM_ID = new anchor.web3.PublicKey(
   "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
 );
-describe("Create metadata", () => {
+async function create_metadata() {
+
+  
+
   const provider = anchor.AnchorProvider.env();
   const connection = provider.connection;
   anchor.setProvider(provider);
 
   const program = anchor.workspace.Endcoin as Program<Endcoin>;
-
-  let values: TestValues;
-
-  beforeEach(() => {
-    values = createValues();
-  });
-
-
 
 let mintAKeypair = anchor.web3.Keypair.generate();
 
@@ -37,30 +32,6 @@ let metadata = anchor.web3.Keypair.generate();
 let endcoin = 0;
 let gaiacoin = 1;
 
-  // confirm transaction helper
-  const confirm = async (signature: string): Promise<string> => {
-
-    const block = await provider.connection.getLatestBlockhash();
-    await provider.connection.confirmTransaction({
-      signature,
-      ...block
-    })
-    return signature
-  }
-    // log transaction helper
-    const log = async(signature: string): Promise<string> => {
-      console.log(`Your transaction signature: https://explorer.solana.com/transaction/${signature}?cluster=devnet`);
-      return signature;
-    }
-
-
-it("Airdrop", async () => {
-  await connection.requestAirdrop(payer.publicKey, LAMPORTS_PER_SOL * 10)
-  .then(confirm)
-  .then(log)
-})
-
-  it("Create Endcoin Metadata", async () => {
     console.log("Mint A: " + mintAKeypair.publicKey.toBase58())
     console.log("Mint B: " + mintBKeypair.publicKey.toBase58())
     console.log("Authority: " + authority.publicKey.toBase58())
@@ -75,11 +46,11 @@ it("Airdrop", async () => {
         systemProgram: anchor.web3.SystemProgram.programId,
         tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID,
         sysvarInstruction: anchor.web3.SYSVAR_INSTRUCTIONS_PUBKEY,
+        rent: anchor.web3.SYSVAR_RENT_PUBKEY,
       }).signers([mintAKeypair, payer])
       .rpc({ skipPreflight: true });
-  });
 
-  it("Create Gaiacoin Metadata", async () => {
+
     await program.methods
       .createMetadata(gaiacoin).accounts({
         mint: mintBKeypair.publicKey,
@@ -88,10 +59,12 @@ it("Airdrop", async () => {
         payer: payer.publicKey,
         systemProgram: anchor.web3.SystemProgram.programId,
         tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID,
-        sysvarInstruction: anchor.web3.SYSVAR_INSTRUCTIONS_PUBKEY
+        sysvarInstruction: anchor.web3.SYSVAR_INSTRUCTIONS_PUBKEY,
+        rent: anchor.web3.SYSVAR_RENT_PUBKEY,
       }).signers([mintBKeypair, payer])
       .rpc({ skipPreflight: true });
-  });
 
-});
 
+};
+
+create_metadata();

@@ -42,6 +42,7 @@ pub struct CreateMetadata<'info> {
     #[account(address = INSTRUCTION_ID())]
     pub sysvar_instruction: AccountInfo<'info>,
     pub token_metadata_program: Program<'info, Metadata>,
+    pub rent: Sysvar<'info, Rent>,
 }
 
 impl<'info> CreateMetadata<'info> {
@@ -71,7 +72,7 @@ impl<'info> CreateMetadata<'info> {
                 symbol = "GAIA";
                 uri = "https://endcoin.com/gaia";
             }
-            _=> return Err(MetadataError::InvalidMetadata.into()), // write custom error 
+            _ => return Err(MetadataError::InvalidMetadata.into()), // write custom error 
         };
             // rust API to create a mint with metadata
             CreateV1CpiBuilder::new(&self.token_metadata_program)
