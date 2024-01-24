@@ -1,5 +1,4 @@
 pub mod init;
-pub mod emit;
 pub mod switchboard;
 pub mod create_amm;
 pub mod create_pool;
@@ -12,7 +11,6 @@ pub mod create_metadata;
 
 
 pub use init::*;
-pub use emit::*;
 pub use switchboard::*;
 pub use create_amm::*;
 pub use create_pool::*;
