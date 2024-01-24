@@ -9,7 +9,7 @@ pub struct CreateAmm<'info> {
         payer = payer,
         space = Amm::LEN,
         seeds = [
-        b"sample".as_ref(),
+        b"amm".as_ref(),
         ],
         bump,
         constraint = fee < 10000 @ AmmError::InvalidFee,
@@ -35,11 +35,10 @@ impl<'info> CreateAmm<'info> {
         id: Pubkey, 
         fee: u16
     ) -> Result<()> {
-        
-        if self.amm.created == true {
-            msg!("AMM Already Exists");
-            return Err(AmmError::AlreadyCreated.into());
-        } else {
+        // if self.amm.created == true {
+        //     msg!("AMM Already Exists");
+        //     return Err(AmmError::AlreadyCreated.into());
+        // } else {
             // set inner values of amm
             self.amm.set_inner(
                 Amm {
@@ -49,7 +48,7 @@ impl<'info> CreateAmm<'info> {
                     created: true
                 });
             msg!("AMM Created, setting State to True");
-        }
+        
             Ok(())
         }
     }

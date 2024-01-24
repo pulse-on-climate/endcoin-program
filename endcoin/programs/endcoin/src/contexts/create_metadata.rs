@@ -20,32 +20,27 @@ pub struct CreateMetadata<'info> {
     #[account(
         init,
         payer = payer,
-        mint::decimals = 2,
-        mint::authority = authority,
+        mint::decimals = 3,
+        mint::authority = mint_authority,
     )]
     pub mint: Account<'info, Mint>,
-
-    /// CHECK: Using account for metadata
-    #[account(mut)]
-    pub metadata: UncheckedAccount<'info>,
     /// CHECK: Read only authority
     #[account(
         seeds = [b"auth"],
         bump
     )]
-    pub authority: UncheckedAccount<'info>,
-
+    pub mint_authority: UncheckedAccount<'info>,
+    /// CHECK: Using account for metadata
+    #[account(mut)]
+    pub metadata: UncheckedAccount<'info>,
     // The account paying for all rents
     #[account(mut)]
     pub payer: Signer<'info>,
-    
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
-
     /// CHECK: no need to check it out
     #[account(address = INSTRUCTION_ID())]
     pub sysvar_instruction: AccountInfo<'info>,
-
     pub token_metadata_program: Program<'info, Metadata>,
 }
 
@@ -57,7 +52,7 @@ impl<'info> CreateMetadata<'info> {
     ) -> Result<()> {
         let seeds = &[
             "auth".as_bytes(),
-            &[bumps.authority]
+            &[bumps.mint_authority]
         ];
 
         let signer_seeds = &[&seeds[..]];
@@ -78,13 +73,13 @@ impl<'info> CreateMetadata<'info> {
             }
             _=> return Err(MetadataError::InvalidMetadata.into()), // write custom error 
         };
-
+            // rust API to create a mint with metadata
             CreateV1CpiBuilder::new(&self.token_metadata_program)
             .metadata(&self.metadata.to_account_info())
             .mint(&self.mint.to_account_info(), false)
-            .authority(&self.authority.to_account_info())
+            .authority(&self.mint_authority.to_account_info())
             .payer(&self.payer.to_account_info())
-            .update_authority(&self.authority.to_account_info(), false)
+            .update_authority(&self.mint_authority.to_account_info(), false)
             .system_program(&self.system_program.to_account_info())
             .sysvar_instructions(&self.sysvar_instruction.to_account_info())
             .spl_token_program(&self.token_program.to_account_info())

@@ -33,30 +33,27 @@ pub timestamp: Option<i64>,
 }
 
 impl<'info> Switchboard<'info> {
-pub fn read_feed(&mut self, params: ReadFeedParams) -> Result<()> {
-    let feed = &self.aggregator.load()?;
+    pub fn read_feed(&mut self, params: ReadFeedParams) -> Result<()> {
+        let feed = &self.aggregator.load()?;
+        // get result
+        let val: f64 = feed.get_result()?.try_into()?;
+        // check whether the feed has been updated in the last 300 seconds
+        feed.check_staleness(
+            solana_program::clock::Clock::get().unwrap().unix_timestamp,
+            300,
+        )
+        .map_err(|_| error!(SwitchboardClientError::StaleFeed))?;
 
-    // get result
-    let val: f64 = feed.get_result()?.try_into()?;
-
-    // check whether the feed has been updated in the last 300 seconds
-    feed.check_staleness(
-        solana_program::clock::Clock::get().unwrap().unix_timestamp,
-        300,
-    )
-    .map_err(|_| error!(SwitchboardClientError::StaleFeed))?;
-
-    // check feed does not exceed max_confidence_interval
-    if let Some(max_confidence_interval) = params.max_confidence_interval {
-        feed.check_confidence_interval(SwitchboardDecimal::from_f64(max_confidence_interval))
-            .map_err(|_| error!(SwitchboardClientError::ConfidenceIntervalExceeded))?;
+        // check feed does not exceed max_confidence_interval
+        if let Some(max_confidence_interval) = params.max_confidence_interval {
+            feed.check_confidence_interval(SwitchboardDecimal::from_f64(max_confidence_interval))
+                .map_err(|_| error!(SwitchboardClientError::ConfidenceIntervalExceeded))?;
+        }
+        msg!("Current feed result is {}!", val);
+        Ok(())
     }
-
-    msg!("Current feed result is {}!", val);
-
-    Ok(())
 }
-}
+
 impl<'info> SwitchboardHistory<'info> {
 pub fn read_history(&mut self, params: ReadHistoryParams) -> Result<()> {
     let history_buffer = AggregatorHistoryBuffer::new(&self.history_buffer)?;

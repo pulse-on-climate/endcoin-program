@@ -18,6 +18,10 @@ pub fn deposit_liquidity(
     bumps: &DepositLiquidityBumps
 ) -> Result<()> {
 
+    // run switchboard function 
+
+    
+
     // Calculate the amount of liquidity to mint for endcoin and gaiacoin
     const DEATH: f64 = 35.000;
     const ENDRATE: f64 = 1.125;
