@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::{
     associated_token::AssociatedToken,
-    token::{Mint, Token, TokenAccount},
+    token::{mint_to, Mint, MintTo, Token, TokenAccount},
 };
 
 use crate::{
@@ -14,7 +14,7 @@ use crate::{
 pub struct CreatePool<'info> {
     #[account(
         seeds = [
-            amm.id.as_ref()
+        b"amm".as_ref(),
         ],
         bump,
     )]
@@ -66,7 +66,6 @@ pub struct CreatePool<'info> {
     pub mint_a: Box<Account<'info, Mint>>,
     #[account(
         address = pool.mint_b //set this to state endcoin address 
-        
     )]
     pub mint_b: Box<Account<'info, Mint>>,
 
@@ -110,7 +109,50 @@ pub struct CreatePool<'info> {
 
 
 impl<'info> CreatePool<'info> {
-    pub fn create_pool(&mut self) -> Result<()> {
+    pub fn create_pool(
+        &mut self,
+        bumps: CreatePoolBumps
+    ) -> Result<()> {
+        let initial_amount: u64 = 6920508831;
+        
+        let seeds = &[
+            "auth".as_bytes(),
+            &[bumps.mint_authority]
+        ];
+
+        let signer_seeds = &[&seeds[..]];
+
+
+        let _ = mint_to(
+            CpiContext::new_with_signer(
+                self.token_program.to_account_info(), 
+                MintTo
+                {
+                    mint: self.mint_a.to_account_info(),
+                    to: self.pool_account_a.to_account_info(),
+                    authority: self.mint_authority.to_account_info(),
+                } ,
+                signer_seeds
+            ),
+            initial_amount
+        );
+
+        let _ = mint_to(
+            CpiContext::new_with_signer(
+                self.token_program.to_account_info(), 
+                MintTo
+                {
+                    mint: self.mint_b.to_account_info(),
+                    to: self.pool_account_b.to_account_info(),
+                    authority: self.mint_authority.to_account_info(),
+                } ,
+                signer_seeds
+            ),
+            initial_amount
+        );
+        
+
+
         let pool = &mut self.pool;
         pool.amm = self.amm.key();
         pool.mint_a = self.mint_a.key();
