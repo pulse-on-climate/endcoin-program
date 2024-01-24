@@ -1,7 +1,7 @@
-var endrate = 1; // Adjust this constant for the rate of change
+var endrate = 1.125; // Adjust this constant for the rate of change
 var death = 35;
 var gaiarate = 0.75;
-var meanTemperature = 20; // highest this year
+var meanTemperature = 21; // highest this year
 
 while (meanTemperature < death) {
 
