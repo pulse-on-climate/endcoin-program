@@ -6,10 +6,10 @@ use anchor_spl::{
 use fixed::types::I64F64;
 use fixed_sqrt::FixedSqrt;
 use rust_decimal::{prelude::ToPrimitive, Decimal};
-use rust_decimal_macros::dec;
+
 
 use crate::{
-    constants::{AUTHORITY_SEED, LIQUIDITY_SEED, MINIMUM_LIQUIDITY}, endcoin, errors::*, state::Pool, state::SST
+    constants::{AUTHORITY_SEED, LIQUIDITY_SEED, MINIMUM_LIQUIDITY}, errors::*, state::Pool, state::SST
 };
 
 impl<'info> DepositLiquidity<'info> { 
@@ -22,11 +22,11 @@ pub fn deposit_liquidity(
     const DEATH: f64 = 35.000;
     const ENDRATE: f64 = 1.125;
     const GAIARATE: f64 = 0.750;
-    let MEAN_TEMP: f64 = SST.temp; // still to include account
+    let mean_temp: f64 = self.sst.temperature;
     // Endcoin calculation
-    let endcoin_emission = ((ENDRATE * (DEATH - MEAN_TEMP)) - 1.000).exp();
+    let endcoin_emission = ((ENDRATE * (DEATH - mean_temp)) - 1.000).exp();
     // Gaiacoin calculation
-    let gaiacoin_emission= ((GAIARATE * (MEAN_TEMP)) - 1.000).exp();
+    let gaiacoin_emission= ((GAIARATE * (mean_temp)) - 1.000).exp();
     // Round to 4 decimals
     let endcoin_emission = (endcoin_emission*1000.0).round() as i64;
     let gaiacoin_emission = (gaiacoin_emission*1000.0).round() as i64;
@@ -233,4 +233,11 @@ pub struct DepositLiquidity<'info> {
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
+
+    #[account(mut,
+        seeds = [
+            b"seaSurfaceTemperature",
+        ],
+        bump
+    )] pub sst: Account<'info, SST>,
 }
