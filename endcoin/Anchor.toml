@@ -4,15 +4,18 @@
 seeds = false
 skip-lint = false
 
+[programs.localnet]
+endcoin = "7Q7HrN7adYXwBckBnY8CcQ78tR7GaCkrbS6R3pj48xiC"
+
 [programs.devnet]
-endcoin = "Dm8CMAiXHEcpxsN1p69BGy1veoUvfTbCgjv9eiH3U7eH"
+endcoin = "7Q7HrN7adYXwBckBnY8CcQ78tR7GaCkrbS6R3pj48xiC"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "devnet"
-wallet = "/Users/andrew/.config/solana/id.json"
+cluster = "localnet"
+wallet = "/Users/leo/.config/solana/id.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"

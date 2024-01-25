@@ -12,7 +12,7 @@ use anchor_spl::{
     },
 };
 
-use anchor_lang::solana_program::sysvar::id as INSTRUCTION_ID;
+use anchor_lang::solana_program::sysvar::instructions::id as INSTRUCTION_ID;
 use crate::errors::MetadataError;
 
 #[derive(Accounts)]
