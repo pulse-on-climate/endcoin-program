@@ -9,6 +9,7 @@ import { getMint, getAssociatedTokenAddressSync } from "@solana/spl-token";
 const TOKEN_METADATA_PROGRAM_ID = new anchor.web3.PublicKey(
   "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
 );
+
 describe("Create metadata", () => {
   const provider = anchor.AnchorProvider.env();
   const connection = provider.connection;
@@ -54,11 +55,11 @@ let gaiacoin = 1;
     }
 
 
-it("Airdrop", async () => {
-  await connection.requestAirdrop(payer.publicKey, LAMPORTS_PER_SOL * 10)
-  .then(confirm)
-  .then(log)
-})
+  it("Airdrop", async () => {
+    await connection.requestAirdrop(payer.publicKey, LAMPORTS_PER_SOL * 10)
+    .then(confirm)
+    .then(log)
+  })
 
   it("Create Endcoin Metadata", async () => {
     console.log("Mint A: " + mintAKeypair.publicKey.toBase58())
