@@ -8,7 +8,7 @@ mod constants;
 
 pub use contexts::*;
 pub mod contexts;
-declare_id!("7Q7HrN7adYXwBckBnY8CcQ78tR7GaCkrbS6R3pj48xiC");
+declare_id!("Dm8CMAiXHEcpxsN1p69BGy1veoUvfTbCgjv9eiH3U7eH");
 
 #[program]
 pub mod endcoin {
