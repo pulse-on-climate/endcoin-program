@@ -20,7 +20,7 @@ describe("Endcoin", () => {
   // Configure the client to use the local cluster.
   const keypair = Keypair.generate();
   const provider = new anchor.AnchorProvider(connection, new anchor.Wallet(keypair), { commitment });
-  const programId = new PublicKey("7vgyfejeG9Yt75gvmBY8xQPviAo9S4zVPK5o5cHkJXiN");
+  const programId = new PublicKey("Dm8CMAiXHEcpxsN1p69BGy1veoUvfTbCgjv9eiH3U7eH");
   const program = new anchor.Program<Endcoin>(IDL, programId, provider);
   const TOKEN_METADATA_PROGRAM_ID = new PublicKey("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
 
@@ -81,6 +81,12 @@ describe("Endcoin", () => {
         mintB.publicKey.toBuffer(),
         Buffer.from("authority"),
       ],program.programId)[0];
+
+      const sst = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("seaSurfaceTemperature"),
+        ],program.programId)[0];
+
         // POOOOOOL ATAS
       let poolAccountA = getAssociatedTokenAddressSync(
         mintA.publicKey,
@@ -92,6 +98,23 @@ describe("Endcoin", () => {
         poolAuthority,
         true
       );
+
+      let holderAccountA = getAssociatedTokenAddressSync(
+        mintA.publicKey,
+        admin.publicKey,
+        true
+      );
+      let holderAccountB = getAssociatedTokenAddressSync(
+        mintB.publicKey,
+        admin.publicKey,
+        true
+      );
+      let liquidityAccount = getAssociatedTokenAddressSync(
+        mintLp.publicKey,
+        admin.publicKey,
+        true
+      );
+
 
   // Instructions
   it("Airdrop", async () => {
@@ -161,5 +184,35 @@ describe("Endcoin", () => {
         poolAccountB: poolAccountB,
       }).signers([mintLp, keypair]).rpc({ skipPreflight: true }).then(confirm).then(log);
   });
+  it("Create SST", async () => {
+    await program.methods
+      .createSst()
+      .accounts({
+        sst: sst,
+        payer: keypair.publicKey,
+        systemProgram: SystemProgram.programId,
+      }).signers([keypair]).rpc({ skipPreflight: true }).then(confirm).then(log);
 
+  });
+  it("Deposit equal amounts", async () => {
+    await program.methods
+      .depositLiquidity()
+      .accounts({
+        pool: poolKey,
+        poolAuthority: poolAuthority,
+        depositor: admin.publicKey,
+        mintLiquidity: mintLp.publicKey,
+        mintA: mintA.publicKey,
+        mintB: mintB.publicKey,
+        poolAccountA: poolAccountA,
+        poolAccountB: poolAccountB,
+        depositorAccountLiquidity: liquidityAccount,
+        depositorAccountA: holderAccountA,
+        depositorAccountB: holderAccountB,
+        sst: sst
+      })
+      .signers([admin])
+      .rpc({ skipPreflight: true });
+
+});
 });

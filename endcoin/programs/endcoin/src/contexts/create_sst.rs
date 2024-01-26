@@ -32,7 +32,7 @@ impl<'info> CreateSST<'info> {
         if sst.created == true {
             return Err(SstError::AlreadyInitialized.into());
         } else {
-            sst.temperature = sst.temperature;
+            sst.temperature = 21.000;
             sst.created = true;
         }
         Ok(())

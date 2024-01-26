@@ -125,7 +125,7 @@ impl<'info> CreatePool<'info> {
         let signer_seeds = &[&seeds[..]];
 
 
-        mint_to(
+        let _ = mint_to(
             CpiContext::new_with_signer(
                 self.token_program.to_account_info(), 
                 MintTo
@@ -139,7 +139,7 @@ impl<'info> CreatePool<'info> {
             initial_amount
         );
 
-        mint_to(
+        let _ = mint_to(
             CpiContext::new_with_signer(
                 self.token_program.to_account_info(), 
                 MintTo

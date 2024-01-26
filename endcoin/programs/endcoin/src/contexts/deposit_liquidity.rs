@@ -26,28 +26,45 @@ pub fn deposit_liquidity(
     const DEATH: f64 = 35.000;
     const ENDRATE: f64 = 1.125;
     const GAIARATE: f64 = 0.750;
-    let mean_temp: f64 = self.sst.temperature;
-    // Endcoin calculation
+    let mean_temp: f64 = 21.000;
+    //Endcoin calculation
     let endcoin_emission = ((ENDRATE * (DEATH - mean_temp)) - 1.000).exp();
-    // Gaiacoin calculation
+    //Gaiacoin calculation
     let gaiacoin_emission= ((GAIARATE * (mean_temp)) - 1.000).exp();
-    // Round to 4 decimals
-    let endcoin_emission = (endcoin_emission*1000.0).round() as i64;
-    let gaiacoin_emission = (gaiacoin_emission*1000.0).round() as i64;
+    //Round to 3 decimals
+    let endcoin_emission = (endcoin_emission).round() as u64;
+    let gaiacoin_emission = (gaiacoin_emission).round() as u64;
 
-    let amount_a = Decimal::new( endcoin_emission, 3);
-    let amount_b = Decimal::new( gaiacoin_emission, 3);
+    // let endcoin_emission = 40;
+    // let gaiacoin_emission = 40;
+
+    // let _ = mint_to(
+    //     CpiContext::new_with_signer(
+    //         self.token_program.to_account_info(), 
+    //         MintTo
+    //         {
+    //             mint: self.mint_b.to_account_info(),
+    //             to: self.pool_account_b.to_account_info(),
+    //             authority: self.mint_authority.to_account_info(),
+    //         } ,
+    //         signer_seeds
+    //     ),
+    //     initial_amount
+    // );
+
+    let mut amount_a: u64 = endcoin_emission;
+    let mut amount_b: u64 = gaiacoin_emission;
     // Prevent depositing assets the depositor does not own
-    let mut amount_a = if amount_a > self.depositor_account_a.amount.into() {
-        self.depositor_account_a.amount.into()
-    } else {
-        amount_a.to_u64().unwrap()
-    };
-    let mut amount_b = if amount_b > self.depositor_account_b.amount.into() {
-        self.depositor_account_b.amount.into()
-    } else {
-        amount_b.to_u64().unwrap()
-    };
+    // let mut amount_a = if amount_a > self.depositor_account_a.amount.into() {
+    //     self.depositor_account_a.amount.into()
+    // } else {
+    //     amount_a.to_u64().unwrap()
+    // };
+    // let mut amount_b = if amount_b > self.depositor_account_b.amount.into() {
+    //     self.depositor_account_b.amount.into()
+    // } else {
+    //     amount_b.to_u64().unwrap()
+    // };
 
     // Making sure they are provided in the same proportion as existing liquidity
     let pool_a = &self.pool_account_a;
@@ -177,13 +194,6 @@ pub struct DepositLiquidity<'info> {
 
     #[account(
         mut,
-        seeds = [
-            pool.amm.as_ref(),
-            mint_a.key().as_ref(),
-            mint_b.key().as_ref(),
-            LIQUIDITY_SEED.as_ref(),
-        ],
-        bump,
     )]
     pub mint_liquidity: Box<Account<'info, Mint>>,
 

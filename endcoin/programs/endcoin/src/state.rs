@@ -44,7 +44,7 @@ pub struct SST {
     pub created: bool
 }
 impl SST {
-    pub const LEN: usize = 8 + 4 + 1;
+    pub const LEN: usize = 8 + 8 + 1;
 }
 
 #[account]
