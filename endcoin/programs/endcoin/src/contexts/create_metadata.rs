@@ -11,7 +11,7 @@ use anchor_spl::{
         Token
     },
 };
-
+use crate::state::{State, Amm};
 use anchor_lang::solana_program::sysvar::instructions::id as INSTRUCTION_ID;
 use crate::errors::MetadataError;
 
@@ -43,6 +43,21 @@ pub struct CreateMetadata<'info> {
     pub sysvar_instruction: AccountInfo<'info>,
     pub token_metadata_program: Program<'info, Metadata>,
     pub rent: Sysvar<'info, Rent>,
+    #[account(
+        seeds = [
+        b"state".as_ref(),
+        amm.key().as_ref(),
+        ],
+        bump,
+    )]
+    pub state: Account<'info, State>,
+    #[account(
+        seeds = [
+        b"amm".as_ref(),
+        ],
+        bump,
+    )]
+    pub amm: Account<'info, Amm>,
 }
 
 impl<'info> CreateMetadata<'info> {
@@ -66,11 +81,17 @@ impl<'info> CreateMetadata<'info> {
                 name = "Endcoin";
                 symbol = "END";
                 uri = "https://endcoin.com";
+            // Set mint to state
+            self.state.mint_a = self.mint.key();
+
             }
             1 => {
                 name = "Gaiacoin";
                 symbol = "GAIA";
                 uri = "https://endcoin.com/gaia";
+                // Set mint to state
+                self.state.mint_b = self.mint.key();
+
             }
             _ => return Err(MetadataError::InvalidMetadata.into()), // write custom error 
         };
@@ -91,6 +112,10 @@ impl<'info> CreateMetadata<'info> {
             .token_standard(TokenStandard::Fungible)
             .invoke_signed(signer_seeds)?;
 
+
+
+
             Ok(())
+
         }
 }

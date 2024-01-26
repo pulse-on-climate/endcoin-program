@@ -5,9 +5,7 @@ use anchor_spl::{
 };
 
 use crate::{
-    constants::{AUTHORITY_SEED, LIQUIDITY_SEED},
-    errors::*,
-    state::{Amm, Pool},
+    constants::{AUTHORITY_SEED, LIQUIDITY_SEED}, state::{State, Amm, Pool}, AmmError
 };
 
 #[derive(Accounts)]
@@ -56,16 +54,18 @@ pub struct CreatePool<'info> {
             LIQUIDITY_SEED.as_ref(),
         ],
         bump,
-        mint::decimals = 6,
+        mint::decimals = 3,
         mint::authority = pool_authority,
     )]
     pub mint_liquidity: Box<Account<'info, Mint>>,
     #[account(
-        address = pool.mint_a,
+       // mut,
+       // address = state.mint_a, //set this to state endcoin address 
     )]
     pub mint_a: Box<Account<'info, Mint>>,
     #[account(
-        address = pool.mint_b //set this to state endcoin address 
+       // mut,
+        //address = state.mint_b, //set this to state gaiacoin address 
     )]
     pub mint_b: Box<Account<'info, Mint>>,
 
@@ -101,6 +101,14 @@ pub struct CreatePool<'info> {
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
+    #[account(
+        seeds = [
+        b"state".as_ref(),
+        amm.key().as_ref(),
+        ],
+        bump,
+    )]
+    pub state: Account<'info, State>,
 }
 
 
@@ -113,6 +121,7 @@ impl<'info> CreatePool<'info> {
         &mut self,
         bumps: CreatePoolBumps
     ) -> Result<()> {
+
         let initial_amount: u64 = 6920508831;
         
         let seeds = &[

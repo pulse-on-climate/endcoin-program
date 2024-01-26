@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use crate::{errors::*, state::Amm};
+use crate::{errors::*, state::{Amm, State}};
 
 #[derive(Accounts)]
 #[instruction(id: Pubkey, fee: u16)]
@@ -20,10 +20,25 @@ pub struct CreateAmm<'info> {
     /// CHECK: Read only, delegatable creation
     pub admin: AccountInfo<'info>,
 
+    #[account(
+        init,
+        payer = payer,
+        space = State::LEN,
+        seeds = [
+            b"state".as_ref(),amm.key().as_ref()
+        ],
+        bump,
+    )]
+    pub state: Account<'info, State>,
+
+
+
+
+
+
     /// The account paying for all rents
     #[account(mut)]
     pub payer: Signer<'info>,
-
     /// Solana ecosystem accounts
     pub system_program: Program<'info, System>,
 }

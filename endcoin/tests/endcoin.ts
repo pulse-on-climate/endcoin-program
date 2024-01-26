@@ -45,9 +45,11 @@ describe("Endcoin", () => {
   // Variables
   let endcoin = 0;
   let gaiacoin = 1;
+
   let mintA = Keypair.generate();
   let metadataA = PublicKey.findProgramAddressSync([Buffer.from("metadata"), TOKEN_METADATA_PROGRAM_ID.toBuffer(), mintA.publicKey.toBuffer()], TOKEN_METADATA_PROGRAM_ID)[0];
   let mintB = Keypair.generate();
+
   let metadataB = PublicKey.findProgramAddressSync([Buffer.from("metadata"), TOKEN_METADATA_PROGRAM_ID.toBuffer(), mintB.publicKey.toBuffer()], TOKEN_METADATA_PROGRAM_ID)[0];
   let mintAuthority = PublicKey.findProgramAddressSync([Buffer.from("auth")], program.programId)[0];
   let amm = PublicKey.findProgramAddressSync([Buffer.from("amm")], program.programId)[0];
@@ -55,12 +57,20 @@ describe("Endcoin", () => {
   let id = Keypair.generate().publicKey;
   let fee = 500;
 
+  // STAAAAAAAATE
+  const stateKey = PublicKey.findProgramAddressSync(
+    [
+      Buffer.from("state"),
+      amm.toBuffer(),
+    ],program.programId)[0];
+
   // POOOOOOOOOLLLLLLLLLLLLLLL
   const poolKey = PublicKey.findProgramAddressSync(
     [
       amm.toBuffer(),
       mintA.publicKey.toBuffer(),
       mintB.publicKey.toBuffer(),
+      
     ],program.programId)[0];
 
     const poolAuthority = PublicKey.findProgramAddressSync(
@@ -100,7 +110,7 @@ describe("Endcoin", () => {
   it("AMM Creation", async () => {
     await program.methods
       .createAmm(id, fee)
-      .accounts({ amm: amm, admin: admin.publicKey})
+      .accounts({ amm: amm, admin: admin.publicKey, state: stateKey})
       .rpc({skipPreflight: true});
   });
 
@@ -112,10 +122,13 @@ describe("Endcoin", () => {
         metadata: metadataA,
         mintAuthority,
         payer: keypair.publicKey,
+        state: stateKey,
+        amm: amm,
         systemProgram: SystemProgram.programId,
         tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID,
         sysvarInstruction: SYSVAR_INSTRUCTIONS_PUBKEY,
       }).signers([mintA, keypair]).rpc({ skipPreflight: true }).then(confirm).then(log);
+      
   });
 
   it("Create Gaiacoin Metadata", async () => {
@@ -125,10 +138,13 @@ describe("Endcoin", () => {
         metadata: metadataB,
         mintAuthority,
         payer: keypair.publicKey,
+        state: stateKey,
+        amm: amm,
         systemProgram: SystemProgram.programId,
         tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID,
         sysvarInstruction: SYSVAR_INSTRUCTIONS_PUBKEY
       }).signers([mintB, keypair]).rpc({ skipPreflight: true }).then(confirm).then(log);
+      // console log out the mint address for the next test
   });
 
 
@@ -138,6 +154,7 @@ describe("Endcoin", () => {
       .createPool()
       .accounts({
         amm: amm,
+        state: stateKey,
         pool: poolKey,
         poolAuthority: poolAuthority,
         mintLiquidity: mintLiquidity,
@@ -149,9 +166,5 @@ describe("Endcoin", () => {
       })
       .rpc({ skipPreflight: true }).then(confirm).then(log);
   });
-
-
-
-
 
 });
