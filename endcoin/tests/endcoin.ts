@@ -20,7 +20,7 @@ describe("Endcoin", () => {
   // Configure the client to use the local cluster.
   const keypair = Keypair.generate();
   const provider = new anchor.AnchorProvider(connection, new anchor.Wallet(keypair), { commitment });
-  const programId = new PublicKey("Dm8CMAiXHEcpxsN1p69BGy1veoUvfTbCgjv9eiH3U7eH");
+  const programId = new PublicKey("7vgyfejeG9Yt75gvmBY8xQPviAo9S4zVPK5o5cHkJXiN");
   const program = new anchor.Program<Endcoin>(IDL, programId, provider);
   const TOKEN_METADATA_PROGRAM_ID = new PublicKey("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
 
@@ -49,13 +49,14 @@ describe("Endcoin", () => {
   let mintA = Keypair.generate();
   let metadataA = PublicKey.findProgramAddressSync([Buffer.from("metadata"), TOKEN_METADATA_PROGRAM_ID.toBuffer(), mintA.publicKey.toBuffer()], TOKEN_METADATA_PROGRAM_ID)[0];
   let mintB = Keypair.generate();
-
   let metadataB = PublicKey.findProgramAddressSync([Buffer.from("metadata"), TOKEN_METADATA_PROGRAM_ID.toBuffer(), mintB.publicKey.toBuffer()], TOKEN_METADATA_PROGRAM_ID)[0];
   let mintAuthority = PublicKey.findProgramAddressSync([Buffer.from("auth")], program.programId)[0];
   let amm = PublicKey.findProgramAddressSync([Buffer.from("amm")], program.programId)[0];
   let admin = Keypair.generate();
   let id = Keypair.generate().publicKey;
   let fee = 500;
+    
+  let mintLp = Keypair.generate();
 
   // STAAAAAAAATE
   const stateKey = PublicKey.findProgramAddressSync(
@@ -80,16 +81,6 @@ describe("Endcoin", () => {
         mintB.publicKey.toBuffer(),
         Buffer.from("authority"),
       ],program.programId)[0];
-
-      const mintLiquidity = PublicKey.findProgramAddressSync(
-        [
-          amm.toBuffer(),
-          mintA.publicKey.toBuffer(),
-          mintB.publicKey.toBuffer(),
-          Buffer.from("liquidity"),
-        ],
-        anchor.workspace.Endcoin.programId
-      )[0];
         // POOOOOOL ATAS
       let poolAccountA = getAssociatedTokenAddressSync(
         mintA.publicKey,
@@ -110,7 +101,14 @@ describe("Endcoin", () => {
   it("AMM Creation", async () => {
     await program.methods
       .createAmm(id, fee)
-      .accounts({ amm: amm, admin: admin.publicKey, state: stateKey})
+      .accounts({ 
+        amm: amm, 
+        admin: admin.publicKey, 
+        state: stateKey,
+        payer: keypair.publicKey,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([keypair])
       .rpc({skipPreflight: true});
   });
 
@@ -147,8 +145,6 @@ describe("Endcoin", () => {
       // console log out the mint address for the next test
   });
 
-
-
   it("Create Pool", async () => {
     await program.methods
       .createPool()
@@ -157,14 +153,13 @@ describe("Endcoin", () => {
         state: stateKey,
         pool: poolKey,
         poolAuthority: poolAuthority,
-        mintLiquidity: mintLiquidity,
+        mintLiquidity: mintLp.publicKey,
         mintAuthority: mintAuthority,
         mintA: mintA.publicKey,
         mintB: mintB.publicKey,
         poolAccountA: poolAccountA,
         poolAccountB: poolAccountB,
-      })
-      .rpc({ skipPreflight: true }).then(confirm).then(log);
+      }).signers([mintLp, keypair]).rpc({ skipPreflight: true }).then(confirm).then(log);
   });
 
 });

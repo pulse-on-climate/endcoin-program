@@ -28,7 +28,7 @@ pub struct CreatePool<'info> {
             mint_b.key().as_ref(),
         ],
         bump,
-        constraint = mint_a.key() < mint_b.key() @ AmmError::InvalidMint
+        // constraint = mint_a.key() < mint_b.key() @ AmmError::InvalidMint
     )]
     pub pool: Account<'info, Pool>,
 
@@ -47,24 +47,17 @@ pub struct CreatePool<'info> {
     #[account(
         init,
         payer = payer,
-        seeds = [
-            amm.key().as_ref(),
-            mint_a.key().as_ref(),
-            mint_b.key().as_ref(),
-            LIQUIDITY_SEED.as_ref(),
-        ],
-        bump,
         mint::decimals = 3,
         mint::authority = pool_authority,
     )]
     pub mint_liquidity: Box<Account<'info, Mint>>,
     #[account(
-       // mut,
+       mut,
        // address = state.mint_a, //set this to state endcoin address 
     )]
     pub mint_a: Box<Account<'info, Mint>>,
     #[account(
-       // mut,
+        mut,
         //address = state.mint_b, //set this to state gaiacoin address 
     )]
     pub mint_b: Box<Account<'info, Mint>>,
@@ -132,7 +125,7 @@ impl<'info> CreatePool<'info> {
         let signer_seeds = &[&seeds[..]];
 
 
-        let _ = mint_to(
+        mint_to(
             CpiContext::new_with_signer(
                 self.token_program.to_account_info(), 
                 MintTo
@@ -146,7 +139,7 @@ impl<'info> CreatePool<'info> {
             initial_amount
         );
 
-        let _ = mint_to(
+        mint_to(
             CpiContext::new_with_signer(
                 self.token_program.to_account_info(), 
                 MintTo
