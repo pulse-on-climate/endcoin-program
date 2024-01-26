@@ -31,11 +31,6 @@ pub struct CreateAmm<'info> {
     )]
     pub state: Account<'info, State>,
 
-
-
-
-
-
     /// The account paying for all rents
     #[account(mut)]
     pub payer: Signer<'info>,
