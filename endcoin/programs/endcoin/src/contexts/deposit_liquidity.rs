@@ -15,7 +15,8 @@ use crate::{
 impl<'info> DepositLiquidity<'info> { 
 pub fn deposit_liquidity(
     &mut self,
-    bumps: &DepositLiquidityBumps
+    bumps: &DepositLiquidityBumps,
+    mean_temp: f64,
 ) -> Result<()> {
 
     // run switchboard function 
@@ -26,7 +27,7 @@ pub fn deposit_liquidity(
     const DEATH: f64 = 35.000;
     const ENDRATE: f64 = 1.125;
     const GAIARATE: f64 = 0.750;
-    let mean_temp: f64 = self.sst.temperature;
+    let mean_temp: f64 = mean_temp;
     //Endcoin calculation
     let endcoin_emission = (ENDRATE * (DEATH - mean_temp)) - 1.000;
     let endcoin_exp = (endcoin_emission).exp() as u64;

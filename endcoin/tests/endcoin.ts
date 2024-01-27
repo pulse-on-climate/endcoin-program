@@ -1,4 +1,5 @@
 import * as anchor from "@coral-xyz/anchor";
+import Big from "big.js";
 import { IDL, Endcoin } from "../target/types/endcoin";
 import { 
   PublicKey, 
@@ -14,31 +15,65 @@ import {
   AggregatorAccount,
   SwitchboardProgram,
 } from "@switchboard-xyz/solana.js";
-import { getAssociatedTokenAddressSync } from "@solana/spl-token";
 
+import { getAssociatedTokenAddressSync } from "@solana/spl-token";
+import wallet from "../wba-wallet.json"
+import { bs58 } from "@project-serum/anchor/dist/cjs/utils/bytes";
 const AGGREGATOR_PUBKEY = new PublicKey(
-  "FMUPZJEysmzSQCfhY45CoUmbNEdCf639nAfng9bSWGtK"
+  "3ManFLbuU3QfDoAo6byXqhFndaiopLdyZQaxNJkGyppG"
 );
+let wallet_keypair = anchor.web3.Keypair.fromSecretKey(new Uint8Array(wallet));
+
+let latestValue = 0.00;
 
 describe("Endcoin", () => {
+async function getTemp() {
+  let SwitchboardPrograms = await SwitchboardProgram.load(
+    new Connection("https://api.devnet.solana.com")
+  );
+
+  //switchboard = await SwitchboardProgram.fromProvider(provider);
+
+  const aggregatorAccount = new AggregatorAccount(SwitchboardPrograms, AGGREGATOR_PUBKEY);
+
+  const result: Big | null = await aggregatorAccount.fetchLatestValue();
+  if (result === null) {
+    throw new Error("Aggregator holds no value");
+  }
+  console.log(result.toString());
+  latestValue = result;
+  } getTemp();
+
+
+
+
   const commitment: Commitment = "confirmed"; // processed, confirmed, finalized
+  
   const connection = new Connection("http://localhost:8899", {
       commitment,
       wsEndpoint: "ws://localhost:8900/",
   });
+  
   // Configure the client to use the local cluster.
   const keypair = Keypair.generate();
+  
   const provider = new anchor.AnchorProvider(connection, new anchor.Wallet(keypair), { commitment });
+  
   const programId = new PublicKey("Dm8CMAiXHEcpxsN1p69BGy1veoUvfTbCgjv9eiH3U7eH");
+  
   const program = new anchor.Program<Endcoin>(IDL, programId, provider);
+  
   const TOKEN_METADATA_PROGRAM_ID = new PublicKey("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
+
   let switchboard: SwitchboardProgram;
   let aggregatorAccount: AggregatorAccount;
 
-  before(async () => {
-    switchboard = await SwitchboardProgram.fromProvider(provider);
-    aggregatorAccount = new AggregatorAccount(switchboard, AGGREGATOR_PUBKEY);
-  });
+
+
+
+
+  // before(async () => {
+
   // Helpers
   const wait = (ms: number): Promise<void> => {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -129,7 +164,10 @@ describe("Endcoin", () => {
         mintAuthority,
         true
       );
-
+      const agg = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("switchboard"),
+        ],program.programId)[0];
 
   // Instructions
   it("Airdrop", async () => {
@@ -219,30 +257,11 @@ describe("Endcoin", () => {
       }).signers([keypair]).rpc({ skipPreflight: true }).then(confirm).then(log);
 
   });
-  it("Get the SST value", async () => {
-      const aggregator = await aggregatorAccount.loadData();
-      const latestValue = AggregatorAccount.decodeLatestValue(aggregator);
-  
-      const tx = await program.methods
-        .readFeed({ maxConfidenceInterval: null })
-        .accounts({ aggregator: aggregatorAccount.publicKey, sst: sst})
-        .rpc();
-  
-      await sleep(5000);
-  
-      const confirmedTxn = await program.provider.connection.getParsedTransaction(
-        tx,
-        "confirmed"
-      );
-  
-      console.log(JSON.stringify(confirmedTxn?.meta?.logMessages, undefined, 2));
-  
-    });
 
   it("Generate Tokens", async () => {
-    
+
   await program.methods
-    .depositLiquidity()
+    .depositLiquidity(latestValue)
     .accounts({
       pool: poolKey,
       poolAuthority: poolAuthority,
@@ -265,6 +284,7 @@ describe("Endcoin", () => {
       let PoolBBalance = await connection.getTokenAccountBalance(
         poolAccountB
       );
+      console.log(`The Temperature: ${latestValue}`);
       console.log(`Pool A Balance: ${PoolABalance.value.amount}`);
       console.log(`Pool B Balance: ${PoolBBalance.value.amount}`);
 });

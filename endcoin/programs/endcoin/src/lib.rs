@@ -42,9 +42,9 @@ pub mod endcoin {
         Ok(())
     }
     pub fn deposit_liquidity(
-        ctx: Context<DepositLiquidity>
+        ctx: Context<DepositLiquidity>, mean_temp: f64
     ) -> Result<()> {
-        ctx.accounts.deposit_liquidity(&ctx.bumps)
+        ctx.accounts.deposit_liquidity(&ctx.bumps, mean_temp)
     }
 
     
