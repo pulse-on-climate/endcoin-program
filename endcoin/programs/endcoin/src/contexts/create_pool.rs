@@ -5,7 +5,7 @@ use anchor_spl::{
 };
 
 use crate::{
-    constants::{AUTHORITY_SEED, LIQUIDITY_SEED}, state::{State, Amm, Pool}, AmmError
+    constants::AUTHORITY_SEED, state::{State, Amm, Pool}
 };
 
 #[derive(Accounts)]
@@ -35,7 +35,7 @@ pub struct CreatePool<'info> {
     /// CHECK: Read only authority
     #[account(
         seeds = [
-            amm.key().as_ref(),
+            //amm.key().as_ref(),
             mint_a.key().as_ref(),
             mint_b.key().as_ref(),
             AUTHORITY_SEED.as_ref(),
@@ -115,7 +115,7 @@ impl<'info> CreatePool<'info> {
         bumps: CreatePoolBumps
     ) -> Result<()> {
 
-        let initial_amount: u64 = 6920508831;
+        let initial_amount: u64 = 6920508;
         
         let seeds = &[
             "auth".as_bytes(),

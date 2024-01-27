@@ -14,7 +14,7 @@ endcoin = "Dm8CMAiXHEcpxsN1p69BGy1veoUvfTbCgjv9eiH3U7eH"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "localnet"
+cluster = "devnet"
 wallet = "/Users/andrew/.config/solana/id.json"
 
 [scripts]

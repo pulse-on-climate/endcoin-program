@@ -9,7 +9,16 @@ import {
   SYSVAR_INSTRUCTIONS_PUBKEY,
   SystemProgram
 } from "@solana/web3.js";
+import { sleep } from "@switchboard-xyz/common";
+import {
+  AggregatorAccount,
+  SwitchboardProgram,
+} from "@switchboard-xyz/solana.js";
 import { getAssociatedTokenAddressSync } from "@solana/spl-token";
+
+const AGGREGATOR_PUBKEY = new PublicKey(
+  "FMUPZJEysmzSQCfhY45CoUmbNEdCf639nAfng9bSWGtK"
+);
 
 describe("Endcoin", () => {
   const commitment: Commitment = "confirmed"; // processed, confirmed, finalized
@@ -23,7 +32,13 @@ describe("Endcoin", () => {
   const programId = new PublicKey("Dm8CMAiXHEcpxsN1p69BGy1veoUvfTbCgjv9eiH3U7eH");
   const program = new anchor.Program<Endcoin>(IDL, programId, provider);
   const TOKEN_METADATA_PROGRAM_ID = new PublicKey("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
+  let switchboard: SwitchboardProgram;
+  let aggregatorAccount: AggregatorAccount;
 
+  before(async () => {
+    switchboard = await SwitchboardProgram.fromProvider(provider);
+    aggregatorAccount = new AggregatorAccount(switchboard, AGGREGATOR_PUBKEY);
+  });
   // Helpers
   const wait = (ms: number): Promise<void> => {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -76,7 +91,7 @@ describe("Endcoin", () => {
 
     const poolAuthority = PublicKey.findProgramAddressSync(
       [
-        amm.toBuffer(),
+        //amm.toBuffer(),
         mintA.publicKey.toBuffer(),
         mintB.publicKey.toBuffer(),
         Buffer.from("authority"),
@@ -111,7 +126,7 @@ describe("Endcoin", () => {
       );
       let liquidityAccount = getAssociatedTokenAddressSync(
         mintLp.publicKey,
-        admin.publicKey,
+        mintAuthority,
         true
       );
 
@@ -183,6 +198,16 @@ describe("Endcoin", () => {
         poolAccountA: poolAccountA,
         poolAccountB: poolAccountB,
       }).signers([mintLp, keypair]).rpc({ skipPreflight: true }).then(confirm).then(log);
+
+            // console log the new pool a and pool b token amounts
+            let PoolABalance = await connection.getTokenAccountBalance(
+              poolAccountA
+            );
+            let PoolBBalance = await connection.getTokenAccountBalance(
+              poolAccountB
+            );
+            console.log(`Pool A Balance: ${PoolABalance.value.amount}`);
+            console.log(`Pool B Balance: ${PoolBBalance.value.amount}`);
   });
   it("Create SST", async () => {
     await program.methods
@@ -194,25 +219,53 @@ describe("Endcoin", () => {
       }).signers([keypair]).rpc({ skipPreflight: true }).then(confirm).then(log);
 
   });
-  it("Deposit equal amounts", async () => {
-    await program.methods
-      .depositLiquidity()
-      .accounts({
-        pool: poolKey,
-        poolAuthority: poolAuthority,
-        depositor: admin.publicKey,
-        mintLiquidity: mintLp.publicKey,
-        mintA: mintA.publicKey,
-        mintB: mintB.publicKey,
-        poolAccountA: poolAccountA,
-        poolAccountB: poolAccountB,
-        depositorAccountLiquidity: liquidityAccount,
-        depositorAccountA: holderAccountA,
-        depositorAccountB: holderAccountB,
-        sst: sst
-      })
-      .signers([admin])
-      .rpc({ skipPreflight: true });
+  it("Get the SST value", async () => {
+      const aggregator = await aggregatorAccount.loadData();
+      const latestValue = AggregatorAccount.decodeLatestValue(aggregator);
+  
+      const tx = await program.methods
+        .readFeed({ maxConfidenceInterval: null })
+        .accounts({ aggregator: aggregatorAccount.publicKey, sst: sst})
+        .rpc();
+  
+      await sleep(5000);
+  
+      const confirmedTxn = await program.provider.connection.getParsedTransaction(
+        tx,
+        "confirmed"
+      );
+  
+      console.log(JSON.stringify(confirmedTxn?.meta?.logMessages, undefined, 2));
+  
+    });
 
+  it("Generate Tokens", async () => {
+    
+  await program.methods
+    .depositLiquidity()
+    .accounts({
+      pool: poolKey,
+      poolAuthority: poolAuthority,
+      payer: keypair.publicKey,
+      mintLiquidity: mintLp.publicKey,
+      mintA: mintA.publicKey,
+      mintB: mintB.publicKey,
+      poolAccountA: poolAccountA,
+      poolAccountB: poolAccountB,
+      mintAuthority: mintAuthority,
+      depositorAccountLiquidity: liquidityAccount,
+      sst: sst
+    })
+    .signers([keypair]).rpc({ skipPreflight: true }).then(confirm).then(log);
+
+      // console log the new pool a and pool b token amounts
+      let PoolABalance = await connection.getTokenAccountBalance(
+        poolAccountA
+      );
+      let PoolBBalance = await connection.getTokenAccountBalance(
+        poolAccountB
+      );
+      console.log(`Pool A Balance: ${PoolABalance.value.amount}`);
+      console.log(`Pool B Balance: ${PoolBBalance.value.amount}`);
 });
 });

@@ -1,7 +1,7 @@
 use anchor_lang::{prelude::*, solana_program};
 use switchboard_solana::{AggregatorAccountData, AggregatorHistoryBuffer, SwitchboardDecimal};
 use std::convert::TryInto;
-use crate::errors::SwitchboardClientError;
+use crate::{errors::SwitchboardClientError, SST};
 
 #[derive(Clone, AnchorSerialize, AnchorDeserialize)]
 pub struct ReadFeedParams {
@@ -13,6 +13,10 @@ pub max_confidence_interval: Option<f64>,
 #[instruction(params: ReadFeedParams)]
 pub struct Switchboard<'info> {
 pub aggregator: AccountLoader<'info, AggregatorAccountData>,
+#[account(mut,
+    seeds = [b"seaSurfaceTemperature"],
+    bump
+)] pub sst: Account<'info, SST>,
 }
 
 // READ HISTORY
@@ -50,6 +54,12 @@ impl<'info> Switchboard<'info> {
                 .map_err(|_| error!(SwitchboardClientError::ConfidenceIntervalExceeded))?;
         }
         msg!("Current feed result is {}!", val);
+        self.sst.set_inner(
+            SST {
+                temperature: val,
+                created: true
+            }
+        );
         Ok(())
     }
 }
