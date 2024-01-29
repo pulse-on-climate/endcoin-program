@@ -80,7 +80,7 @@ impl<'info> CreateMetadata<'info> {
             0 => {
                 name = "Endcoin";
                 symbol = "END";
-                uri = "https://endcoin.com";
+                uri = "https://arweave.net/K-3ZVae8bb_iMFLTZKuO_7CMNLtOc-bmMafhhn_PeF0";
             // Set mint to state
             self.state.mint_a = self.mint.key();
 
@@ -88,7 +88,7 @@ impl<'info> CreateMetadata<'info> {
             1 => {
                 name = "Gaiacoin";
                 symbol = "GAIA";
-                uri = "https://endcoin.com/gaia";
+                uri = "https://arweave.net/aFr3D_1_O4F2cDpE9r_OGP5o6D2OyZgDzlLmBEdUYos";
                 // Set mint to state
                 self.state.mint_b = self.mint.key();
 
