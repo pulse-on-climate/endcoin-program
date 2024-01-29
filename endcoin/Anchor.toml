@@ -5,10 +5,10 @@ seeds = false
 skip-lint = false
 
 [programs.localnet]
-endcoin = "Dm8CMAiXHEcpxsN1p69BGy1veoUvfTbCgjv9eiH3U7eH"
+endcoin = "G6zBsKfxC1sweqbfa1pYnDPa79UGKS5VtqnrJ1jPc9AP"
 
 [programs.devnet]
-endcoin = "Dm8CMAiXHEcpxsN1p69BGy1veoUvfTbCgjv9eiH3U7eH"
+endcoin = "G6zBsKfxC1sweqbfa1pYnDPa79UGKS5VtqnrJ1jPc9AP"
 
 [registry]
 url = "https://api.apr.dev"
