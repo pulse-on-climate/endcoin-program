@@ -19,15 +19,10 @@ import { getAssociatedTokenAddressSync } from "@solana/spl-token";
 import wallet from "../wba-wallet.json"
 import { bs58 } from "@project-serum/anchor/dist/cjs/utils/bytes";
 
-import endcoin_key from "./keys/ENDxPmLfBBTVby7DBYUo4gEkFABQgvLP2LydFCzGGBee.json"
-import gaiacoin_key from "./keys/GAiAxUPQrUaELAuri8tVC354bGuUGGykCN8tP4qfCeSp.json"
-import pulse_key from "./keys/PLSxiYHus8rhc2NhXs2qvvhAcpsa4Q3TzTCi3o8xAEU.json"
-
-
 let latestValue = 21.00;
 
 const AGGREGATOR_PUBKEY = new PublicKey(
-  "GfQVY4j7mjd4gcJJEe4rkFsSQxdHLMNTo36dWCdhg64S"
+  "3ManFLbuU3QfDoAo6byXqhFndaiopLdyZQaxNJkGyppG"
 );
 
 let wallet_keypair = anchor.web3.Keypair.fromSecretKey(new Uint8Array(wallet));
@@ -63,15 +58,13 @@ async function getTemp() {
   latestValue = result;
   } 
 getTemp(); // call it
-
   // Configure the client to use the devnet cluster.
   const keypair = Keypair.generate(); // replace with wallet
   
-  const commitment: Commitment = "confirmed"; // processed, confirmed, finalized
-  const connection = new Connection("http://localhost:8899", {
-      commitment,
-      wsEndpoint: "ws://localhost:8900/",
-  });
+  const commitment: Commitment = "confirmed"; 
+  
+  const connection = new Connection("https://api.devnet.solana.com");
+  
   const provider = new anchor.AnchorProvider(connection, new anchor.Wallet(keypair), { commitment });
 
   const programId = new PublicKey("G6zBsKfxC1sweqbfa1pYnDPa79UGKS5VtqnrJ1jPc9AP");
@@ -84,13 +77,12 @@ getTemp(); // call it
   let endcoin = 0;
   let gaiacoin = 1;
 
+
   // KEYS //
-  let mintA = anchor.web3.Keypair.fromSecretKey(new Uint8Array(endcoin_key)); // replace with endcoin file
-  let mintB = anchor.web3.Keypair.fromSecretKey(new Uint8Array(gaiacoin_key)); // replace with gaiacoin file
-  let mintLp = anchor.web3.Keypair.fromSecretKey(new Uint8Array(pulse_key)); // replace with pulse file
-  
-  let admin = mintA; // replace with my wallet (keypair)
-  let id = mintA.publicKey;
+  let mintA = Keypair.generate(); // replace with endcoin file
+  let mintB = Keypair.generate(); // replace with gaiacoin file
+  let mintLp = Keypair.generate(); // replace with pulse file
+
 
   let metadataA = PublicKey.findProgramAddressSync(
     [
@@ -111,7 +103,9 @@ getTemp(); // call it
   let mintAuthority = PublicKey.findProgramAddressSync([Buffer.from("auth")], program.programId)[0];
   let amm = PublicKey.findProgramAddressSync([Buffer.from("amm")], program.programId)[0];
 
+  //let admin = Keypair.generate(); // replace with my wallet (keypair)
 
+  let id = Keypair.generate().publicKey;
   
   let fee = 500;
   // SST // 
@@ -169,7 +163,7 @@ getTemp(); // call it
   );
 
   // Instructions
-  it("Airdrop", async () => {
+  xit("Airdrop", async () => {
     await connection.requestAirdrop(keypair.publicKey, LAMPORTS_PER_SOL * 10).then(confirm).then(log)
   })
 
@@ -178,7 +172,7 @@ getTemp(); // call it
       .createAmm(id, fee)
       .accounts({ 
         amm: amm, 
-        admin: admin.publicKey, 
+        admin: mintA.publicKey, 
         state: stateKey,
         payer: keypair.publicKey,
         systemProgram: SystemProgram.programId,
@@ -236,15 +230,15 @@ getTemp(); // call it
         poolAccountB: poolAccountB,
       }).signers([mintLp, keypair]).rpc({ skipPreflight: true }).then(confirm).then(log);
 
-      // console log the new pool a and pool b token amounts
-      let PoolABalance = await connection.getTokenAccountBalance(
-        poolAccountA
-      );
-      let PoolBBalance = await connection.getTokenAccountBalance(
-        poolAccountB
-      );
-      console.log(`Pool A Balance: ${PoolABalance.value.amount}`);
-      console.log(`Pool B Balance: ${PoolBBalance.value.amount}`);
+            // console log the new pool a and pool b token amounts
+            let PoolABalance = await connection.getTokenAccountBalance(
+              poolAccountA
+            );
+            let PoolBBalance = await connection.getTokenAccountBalance(
+              poolAccountB
+            );
+            console.log(`Pool A Balance: ${PoolABalance.value.amount}`);
+            console.log(`Pool B Balance: ${PoolBBalance.value.amount}`);
   });
   it("Create SST", async () => {
     await program.methods
