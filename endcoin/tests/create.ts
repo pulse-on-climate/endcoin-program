@@ -69,7 +69,7 @@ describe("Endcoin", () => {
   const connection = new Connection("https://api.devnet.solana.com");
   const provider = new anchor.AnchorProvider(connection, new anchor.Wallet(keypair), { commitment });
 
-  const programId = new PublicKey("G6zBsKfxC1sweqbfa1pYnDPa79UGKS5VtqnrJ1jPc9AP");
+  const programId = new PublicKey("3ueQV5DMwmnif9JBmf7SSvD6Lsf13nBu4dzCQfsjZX3d");
 
   const TOKEN_METADATA_PROGRAM_ID = new PublicKey("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
 
@@ -164,7 +164,7 @@ describe("Endcoin", () => {
   );
 
   // Instructions
-  it("Airdrop", async () => {
+  xit("Airdrop", async () => {
     await connection.requestAirdrop(keypair.publicKey, LAMPORTS_PER_SOL * 10).then(confirm).then(log)
   })
 

@@ -1,6 +1,7 @@
 # Endcoin Capstone
 
-Devnet Address: "Dm8CMAiXHEcpxsN1p69BGy1veoUvfTbCgjv9eiH3U7eH"
+Devnet Address: "3ueQV5DMwmnif9JBmf7SSvD6Lsf13nBu4dzCQfsjZX3d"
+
 https://www.youtube.com/watch?v=cvvLgBricRM
 
 # What is Endcoin? 

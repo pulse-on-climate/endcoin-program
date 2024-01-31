@@ -50,7 +50,7 @@ describe("Endcoin", () => {
   const connection = new Connection("https://api.devnet.solana.com");
   const provider = new anchor.AnchorProvider(connection, new anchor.Wallet(keypair), { commitment });
 
-  const programId = new PublicKey("G6zBsKfxC1sweqbfa1pYnDPa79UGKS5VtqnrJ1jPc9AP");
+  const programId = new PublicKey("3ueQV5DMwmnif9JBmf7SSvD6Lsf13nBu4dzCQfsjZX3d");
 
   const program = new anchor.Program<Endcoin>(IDL, programId, provider);
   

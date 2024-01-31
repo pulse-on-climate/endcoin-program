@@ -5,13 +5,13 @@ seeds = false
 skip-lint = false
 
 [programs.localnet]
-endcoin = "G6zBsKfxC1sweqbfa1pYnDPa79UGKS5VtqnrJ1jPc9AP"
+endcoin = "3ueQV5DMwmnif9JBmf7SSvD6Lsf13nBu4dzCQfsjZX3d"
 
 [programs.devnet]
-endcoin = "G6zBsKfxC1sweqbfa1pYnDPa79UGKS5VtqnrJ1jPc9AP"
+endcoin = "3ueQV5DMwmnif9JBmf7SSvD6Lsf13nBu4dzCQfsjZX3d"
 
 [registry]
-url = "https://api.devnet.solana.com"
+url = "https://api.apr.dev"
 
 [provider]
 cluster = "devnet"
