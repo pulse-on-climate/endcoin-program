@@ -1,6 +1,13 @@
 # Endcoin Capstone
 
-Devnet Address: "3ueQV5DMwmnif9JBmf7SSvD6Lsf13nBu4dzCQfsjZX3d"
+Devnet Address: "3ueQV5DMwmnif9JBmf7SSvD6Lsf13nBu4dzCQfsjZX3d"  
+
+ENDCOIN TOKEN: "ENDxPmLfBBTVby7DBYUo4gEkFABQgvLP2LydFCzGGBee"  
+
+GAIACOIN TOKEN: "GAiAxUPQrUaELAuri8tVC354bGuUGGykCN8tP4qfCeSp"  
+
+PULSE TOKEN (LP TOKEN): "PLSxiYHus8rhc2NhXs2qvvhAcpsa4Q3TzTCi3o8xAEU"  
+
 
 https://www.youtube.com/watch?v=cvvLgBricRM
 
