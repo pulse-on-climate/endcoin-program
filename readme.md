@@ -1,3 +1,4 @@
+![Rad looking Endcoin Image](https://gcdnb.pbrd.co/images/MOyZaxX4iiKc.png?o=1)
 # Endcoin
 
 [Read our Whitepaper](https://github.com/pulse-on-climate/endcoin-whitepaper)
