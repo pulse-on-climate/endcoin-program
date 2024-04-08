@@ -1,6 +1,18 @@
-# Endcoin Capstone
+# Endcoin
 
-Devnet Address: "3ueQV5DMwmnif9JBmf7SSvD6Lsf13nBu4dzCQfsjZX3d"  
+[Read our Whitepaper](https://github.com/pulse-on-climate/endcoin-whitepaper)
+
+
+[Visit our Website, endco.in](https://endco.in)
+
+[View Our Pitchdeck](https://docs.google.com/presentation/d/1wmM081OB3MX4Lon5AklayJu_sGj8PTRRzXQSUto6Zg8/edit#slide=id.g28a8b58795f_2_760)
+
+
+[Get your ticket to the bubbledome](https://www.youtube.com/watch?v=cvvLgBricRM)
+
+## Live on Devnet
+
+Devnet Address: "CsZXQua2LBArR51MtTJE3K1VA4DcxFFWUWU4JSJeJbeR"  
 
 ENDCOIN TOKEN: "ENDxPmLfBBTVby7DBYUo4gEkFABQgvLP2LydFCzGGBee"  
 
@@ -8,34 +20,11 @@ GAIACOIN TOKEN: "GAiAxUPQrUaELAuri8tVC354bGuUGGykCN8tP4qfCeSp"
 
 PULSE TOKEN (LP TOKEN): "PLSxiYHus8rhc2NhXs2qvvhAcpsa4Q3TzTCi3o8xAEU"  
 
-
-https://www.youtube.com/watch?v=cvvLgBricRM
-
 # What is Endcoin? 
+Endcoin starts by building A DePin Satellite receiver network to produce a reading of sea surface temperatures. This acts as a price feed to drive existing DeFi systems towards positive climate impact: A standard rate for the global economy that is owned by the Earth.
 
-Endcoin is a new cryptocurrancy whose emmision rate and subsequent value is derived from climate data. 
 
-We track the global average sea surface temperature and use this datapoint to control the emission rate of the token. 
+Climate disaster will destroy the economy, and much more.
 
-Endcoin has a partner, Gaiacoin, and together they provide an initial pool of liquidity. 
 
-# Endcoin - Short the world
-Endcoins emmisions drop as the worlds sea temperatures rise to 35 degrees, providing scarcity as the world heats up. 
-Holders of Endcoin are betting against the world, and will expect their assets to grow in value as the planet declines and slowly dies. 
-
-# Gaiacoin - Long the world
-Gaiacoin is directly inversed to Endcoin. As the temperature rises, more Gaiacoins are emmited. By investing in climate projects, humans can "long the world" and bring temperatures back under control. As we regain control of our planets ecosystem, we increase our value. 
-
-# Bubbledome
-Endcoin and gaiacoin holders will be awarded with a ticket to the Bubbledome: A safe haven that will be created when the world has declined to dust. The bubble dome will be the last city left on planet earth, and only holders of tickets will be allowed access. 
-
-# Programs
-
-- Endcoin Token 2022 Program
-- Gaiacoin Token 2022 Program
-- Bubbledome Ticket Minting Program
-- Data Oracle 
-
-# Whitepaper
-
-https://endco.in
+Using satellites and memes we are building a system that solves this problem by treating the health of the earth as a public good funded by a native economic protocol.
