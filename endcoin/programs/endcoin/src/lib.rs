@@ -32,7 +32,8 @@ pub mod endcoin {
         Ok(())
     }
 
-    pub fn create_metadata(ctx: Context<CreateMetadata>, token: u8) -> Result<()> {
+    pub fn create_metadata(ctx: Context<CreateMetadata>, token: u8) -> Result<()>
+    {
         ctx.accounts.create_metadata(token, ctx.bumps)?;
         Ok(())
     }

@@ -51,10 +51,8 @@ pub fn swap_exact_tokens_for_tokens(
                 I64F64::from_num(pool_b.amount)
                     .checked_add(I64F64::from_num(taxed_input))
                     .unwrap(),
-            )
-            .unwrap()
-    }
-    .to_num::<u64>();
+            ).unwrap()
+    }.to_num::<u64>();
 
     if output < min_output_amount {
         return err!(AmmError::OutputTooSmall);
@@ -159,7 +157,6 @@ pub struct SwapExactTokensForTokens<'info> {
             pool.mint_b.key().as_ref(),
         ],
         bump,
-        has_one = amm,
         has_one = mint_a,
         has_one = mint_b,
     )]
@@ -167,11 +164,11 @@ pub struct SwapExactTokensForTokens<'info> {
 
     /// CHECK: Read only authority
     #[account(
+        mut,
         seeds = [
-            pool.amm.as_ref(),
             mint_a.key().as_ref(),
             mint_b.key().as_ref(),
-            AUTHORITY_SEED.as_ref(),
+            b"authority".as_ref(),
         ],
         bump,
     )]
@@ -188,37 +185,32 @@ pub struct SwapExactTokensForTokens<'info> {
         mut,
         associated_token::mint = mint_a,
         associated_token::authority = pool_authority,
-    )]
-    pub pool_account_a: Box<Account<'info, TokenAccount>>,
+    )] pub pool_account_a: Box<Account<'info, TokenAccount>>,
 
     #[account(
         mut,
         associated_token::mint = mint_b,
         associated_token::authority = pool_authority,
-    )]
-    pub pool_account_b: Box<Account<'info, TokenAccount>>,
+    )] pub pool_account_b: Box<Account<'info, TokenAccount>>,
 
     #[account(
         init_if_needed,
         payer = payer,
         associated_token::mint = mint_a,
         associated_token::authority = trader,
-    )]
-    pub trader_account_a: Box<Account<'info, TokenAccount>>,
+    )] pub trader_account_a: Box<Account<'info, TokenAccount>>,
 
     #[account(
         init_if_needed,
         payer = payer,
         associated_token::mint = mint_b,
         associated_token::authority = trader,
-    )]
-    pub trader_account_b: Box<Account<'info, TokenAccount>>,
+    )] pub trader_account_b: Box<Account<'info, TokenAccount>>,
 
     /// The account paying for all rents
-    #[account(mut)]
-    pub payer: Signer<'info>,
+    #[account(mut)] pub payer: Signer<'info>,
 
-    /// Solana ecosystem accounts
+    // Solana ecosystem accounts
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
