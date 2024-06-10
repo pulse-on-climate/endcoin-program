@@ -1,5 +1,6 @@
-import * as anchor from "@coral-xyz/anchor";
-import { IDL, Endcoin } from "../target/types/endcoin";
+import * as anchor from "@project-serum/anchor";
+import { Program } from "@project-serum/anchor";
+import { Endcoin } from "../target/types/endcoin";
 import { 
     PublicKey, 
     Keypair,
@@ -15,14 +16,12 @@ import endcoin_key from "./keys/ENDxPmLfBBTVby7DBYUo4gEkFABQgvLP2LydFCzGGBee.jso
 import gaiacoin_key from "./keys/GAiAxUPQrUaELAuri8tVC354bGuUGGykCN8tP4qfCeSp.json"
 import pulse_key from "./keys/PLSxiYHus8rhc2NhXs2qvvhAcpsa4Q3TzTCi3o8xAEU.json"
   // Configure the client to use the devnet cluster.
-  
-  describe("Swap", () => {
+describe("Swap", () => {
   const provider = anchor.AnchorProvider.env();
   const connection = provider.connection;
   anchor.setProvider(provider);
 
-  const programId = new PublicKey("3ueQV5DMwmnif9JBmf7SSvD6Lsf13nBu4dzCQfsjZX3d");
-  const program = new anchor.Program<Endcoin>(IDL, programId, provider);
+  const program = anchor.workspace.Endcoin as Program<Endcoin>;
 
   const keypair = anchor.web3.Keypair.fromSecretKey(new Uint8Array(wallet_key)); // replace with wallet
   
@@ -30,6 +29,12 @@ import pulse_key from "./keys/PLSxiYHus8rhc2NhXs2qvvhAcpsa4Q3TzTCi3o8xAEU.json"
   let mintA = anchor.web3.Keypair.fromSecretKey(new Uint8Array(endcoin_key)); // replace with endcoin file
   let mintB = anchor.web3.Keypair.fromSecretKey(new Uint8Array(gaiacoin_key)); // replace with gaiacoin file
   let mintLp = anchor.web3.Keypair.fromSecretKey(new Uint8Array(pulse_key)); // replace with pulse file
+ 
+
+
+
+
+
 
   let mintAuthority = PublicKey.findProgramAddressSync([Buffer.from("auth")], program.programId)[0];
 
@@ -46,6 +51,14 @@ import pulse_key from "./keys/PLSxiYHus8rhc2NhXs2qvvhAcpsa4Q3TzTCi3o8xAEU.json"
 
 
   let amm = PublicKey.findProgramAddressSync([Buffer.from("amm")], program.programId)[0];
+
+  let fee = 500;
+  // SST // 
+  const sst = PublicKey.findProgramAddressSync(
+    [
+      Buffer.from("seaSurfaceTemperature"),
+    ],
+    program.programId)[0];
 
   // POOL // 
   const poolKey = PublicKey.findProgramAddressSync(
@@ -92,8 +105,8 @@ import pulse_key from "./keys/PLSxiYHus8rhc2NhXs2qvvhAcpsa4Q3TzTCi3o8xAEU.json"
     const depositAmountB = new BN(1 * 10 ** 6);
     const minimumLiquidity = new BN(100);
     const defaultSupply = new BN(100 * 10 ** 6);
+
     const input = new BN(10 ** 6);
-    
     await program.methods
       .swapExactTokensForTokens(true, input, new BN(100))
       .accounts({
@@ -107,7 +120,6 @@ import pulse_key from "./keys/PLSxiYHus8rhc2NhXs2qvvhAcpsa4Q3TzTCi3o8xAEU.json"
         poolAccountB: poolAccountB,
         traderAccountA: holderAccountA,
         traderAccountB: holderAccountB,
-        payer: keypair.publicKey,
       })
       .signers([keypair])
       .rpc({ skipPreflight: true });

@@ -24,7 +24,7 @@ deploy-0 = "yarn run ts-node deployment/00_generate_keypairs.ts"
 deploy-1 = "yarn run ts-node deployment/create-amm.ts"
 deploy-2 = "yarn run ts-node deployment/02_create-metadata.ts"
 deploy-3 = "yarn run ts-node deployment/create-pool.ts"
-swap = "yarn run ts-node deployment/swap.ts"
+swap = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/swap.ts"
 
 
 
