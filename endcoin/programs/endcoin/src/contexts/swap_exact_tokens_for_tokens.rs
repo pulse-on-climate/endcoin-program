@@ -144,7 +144,7 @@ pub fn swap_exact_tokens_for_tokens(
 pub struct SwapExactTokensForTokens<'info> {
     #[account(
         seeds = [
-            amm.id.as_ref()
+        b"amm".as_ref(),
         ],
         bump,
     )]
