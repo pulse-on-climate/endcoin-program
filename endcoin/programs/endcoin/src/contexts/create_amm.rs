@@ -4,6 +4,7 @@ use crate::{errors::*, state::{Amm, State}};
 #[derive(Accounts)]
 #[instruction(id: Pubkey, fee: u16)]
 pub struct CreateAmm<'info> {
+    // The AMM account
     #[account(
         init_if_needed,
         payer = payer,
@@ -31,13 +32,13 @@ pub struct CreateAmm<'info> {
     )]
     pub state: Account<'info, State>,
 
-    /// The account paying for all rents
+    // The account paying for all rents
     #[account(mut)]
     pub payer: Signer<'info>,
-    /// Solana ecosystem accounts
+
+    // Solana ecosystem accounts
     pub system_program: Program<'info, System>,
 }
-
 
 impl<'info> CreateAmm<'info> {
     pub fn create_amm(
@@ -45,10 +46,13 @@ impl<'info> CreateAmm<'info> {
         id: Pubkey, 
         fee: u16
     ) -> Result<()> {
-        // if self.amm.created == true {
-        //     msg!("AMM Already Exists");
-        //     return Err(AmmError::AlreadyCreated.into());
-        // } else {
+// We will implement this later
+// 
+// if self.amm.created == true {
+//     msg!("AMM Already Exists");
+//     return Err(AmmError::AlreadyCreated.into());
+// } else {
+
             // set inner values of amm
             self.amm.set_inner(
                 Amm {

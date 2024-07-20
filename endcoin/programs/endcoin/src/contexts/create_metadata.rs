@@ -38,11 +38,13 @@ pub struct CreateMetadata<'info> {
     pub payer: Signer<'info>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
+    
     /// CHECK: no need to check it out
     #[account(address = INSTRUCTION_ID())]
     pub sysvar_instruction: AccountInfo<'info>,
     pub token_metadata_program: Program<'info, Metadata>,
     pub rent: Sysvar<'info, Rent>,
+
     #[account(
         seeds = [
         b"state".as_ref(),
@@ -51,6 +53,7 @@ pub struct CreateMetadata<'info> {
         bump,
     )]
     pub state: Account<'info, State>,
+
     #[account(
         seeds = [
         b"amm".as_ref(),
