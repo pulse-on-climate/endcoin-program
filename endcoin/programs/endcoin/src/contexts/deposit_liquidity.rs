@@ -5,11 +5,10 @@ use anchor_spl::{
 };
 use fixed::types::I64F64;
 use fixed_sqrt::FixedSqrt;
-// use rust_decimal::{prelude::ToPrimitive, Decimal};
-
 
 use crate::{
-     state::Pool, state::SST
+     state::Pool, 
+     state::SST
 };
 
 impl<'info> DepositLiquidity<'info> { 
@@ -18,10 +17,6 @@ pub fn deposit_liquidity(
     bumps: &DepositLiquidityBumps,
     mean_temp: f64,
 ) -> Result<()> {
-
-    // run switchboard function 
-
-    
 
     // Calculate the amount of liquidity to mint for endcoin and gaiacoin
     const DEATH: f64 = 35.000;
@@ -97,6 +92,7 @@ pub fn deposit_liquidity(
 
     //     liquidity -= MINIMUM_LIQUIDITY;
     // }
+
     // Mint tokens directly to pool, as we don't need a depositor. 
     let seeds = &[
         "auth".as_bytes(),
