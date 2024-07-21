@@ -145,7 +145,7 @@ pub fn swap_exact_tokens_for_tokens(
     // Transfer tokens to the pool
     let authority_bump = bumps.pool_authority;
     let authority_seeds = &[
-        &self.pool.amm.to_bytes(),
+        // &self.pool.amm.to_bytes(),
         &self.mint_a.key().to_bytes(),
         &self.mint_b.key().to_bytes(),
         AUTHORITY_SEED.as_bytes(),
