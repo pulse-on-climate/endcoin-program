@@ -30,52 +30,13 @@ pub fn deposit_liquidity(
     let gaiacoin_emission= (GAIARATE * (mean_temp)) - 1.000;
     let gaiacoin_exp = (gaiacoin_emission).exp() as u64;
 
+    let amount_a: u64 = (endcoin_exp / 100) * 95;
+    let amount_b: u64 = (gaiacoin_exp / 100) * 95;
 
+    let user_amount_a: u64 = (endcoin_exp / 100) * 5;
+    let user_amount_b: u64 = (gaiacoin_exp / 100) * 5;
+  
 
-    // Prevent depositing assets the depositor does not own
-
-    // let mut amount_a = if amount_a > self.depositor_account_a.amount {
-    //     self.depositor_account_a.amount
-    // } else {
-    //     amount_a
-    // };
-    // let mut amount_b = if amount_b > self.depositor_account_b.amount {
-    //     self.depositor_account_b.amount
-    // } else {
-    //     amount_b
-    // };
-    let amount_a: u64 = endcoin_exp;
-    let amount_b: u64 = gaiacoin_exp;
-
-
-    // // Making sure they are provided in the same proportion as existing liquidity
-    // //let pool_a = &self.pool_account_a;
-    // //let pool_b = &self.pool_account_b;
-    // // Defining pool creation like this allows attackers to frontrun pool creation with bad ratios
-    // // let pool_creation = pool_a.amount == 0 && pool_b.amount == 0;
-    // // (amount_a, amount_b) = if pool_creation {
-    // //     // Add as is if there is no liquidity
-    // //     (amount_a, amount_b)
-    // // } else {
-    // let ratio = I64F64::from_num(self.pool_account_a.amount)
-    //         .checked_mul(I64F64::from_num(self.pool_account_b.amount));
-    
-    // if self.pool_account_a.amount > self.pool_account_b.amount {
-        
-    //         I64F64::from_num(amount_b)
-    //             .checked_mul(ratio);// Unwrap the Option<FixedI128<_>> value
-    //         amount_b
-    
-    // } else {
-    
-    //         amount_a;
-    //         I64F64::from_num(amount_a)
-    //             .to_num::<u64>(), // Convert to u64
-
-    // }
-
-
-   // };
 
     // Computing the amount of liquidity about to be deposited
     let liquidity = I64F64::from_num(amount_a)
@@ -84,24 +45,14 @@ pub fn deposit_liquidity(
         .sqrt()
         .to_num::<u64>();
 
-    // Lock some minimum liquidity on the first deposit
-    // if pool_creation {
-    //     if liquidity < MINIMUM_LIQUIDITY {
-    //         return err!(AmmError::DepositTooSmall);
-    //     }
-
-    //     liquidity -= MINIMUM_LIQUIDITY;
-    // }
-
     // Mint tokens directly to pool, as we don't need a depositor. 
     let seeds = &[
         "auth".as_bytes(),
         &[bumps.mint_authority]
     ];
-
     let mint_signer_seeds = &[&seeds[..]];
-    // minting the correct amount of tokens to the pool for token a
 
+    // minting the correct amount of tokens to the pool for token a
     let _ = mint_to(
         CpiContext::new_with_signer(
             self.token_program.to_account_info(), 
@@ -115,6 +66,7 @@ pub fn deposit_liquidity(
         ),
         amount_a
     );
+
 // minting the correct amount of tokens to the pool for token b
     let _ = mint_to(
         CpiContext::new_with_signer(
@@ -129,6 +81,38 @@ pub fn deposit_liquidity(
         ),
         amount_b
     );
+
+    // minting the correct amount of tokens to the user for token a
+    let _ = mint_to(
+        CpiContext::new_with_signer(
+            self.token_program.to_account_info(), 
+            MintTo
+            {
+                mint: self.mint_a.to_account_info(),
+                to: self.user_account_a.to_account_info(),
+                authority: self.mint_authority.to_account_info(),
+            } ,
+            mint_signer_seeds
+        ),
+        user_amount_a
+    );
+
+
+// minting the correct amount of tokens to the user for token b
+let _ = mint_to(
+    CpiContext::new_with_signer(
+        self.token_program.to_account_info(), 
+        MintTo
+        {
+            mint: self.mint_b.to_account_info(),
+            to: self.user_account_b.to_account_info(),
+            authority: self.mint_authority.to_account_info(),
+        } ,
+        mint_signer_seeds
+    ),
+    user_amount_b
+);
+
 
     // Transfer tokens to the pool
     // token::transfer(
@@ -154,7 +138,7 @@ pub fn deposit_liquidity(
     //     amount_b,
     // )?;
 
-    // Mint the liquidity to user
+    // Mint the liquidity to locked AMM.
     let authority_bump = bumps.pool_authority;
     let authority_seeds = &[
         &self.mint_a.key().to_bytes(),
@@ -207,13 +191,15 @@ pub struct DepositLiquidity<'info> {
     /// The account paying for all rents
     #[account(mut)]
     pub payer: Signer<'info>,
-    /// The account paying for all rents
-    // pub depositor: Signer<'info>,
+    #[account(mut)]
+    pub user_payer: Signer<'info>,
 
     #[account(mut)]
     pub mint_liquidity: Box<Account<'info, Mint>>,
+
     #[account(mut)]
     pub mint_a: Box<Account<'info, Mint>>,
+
     #[account(mut)]
     pub mint_b: Box<Account<'info, Mint>>,
 
@@ -231,6 +217,21 @@ pub struct DepositLiquidity<'info> {
     )]
     pub pool_account_b: Box<Account<'info, TokenAccount>>,
 
+    #[account(
+        init_if_needed,
+        payer = payer,
+        associated_token::mint = mint_a,
+        associated_token::authority = pool_authority,
+    )]
+    pub user_account_a: Box<Account<'info, TokenAccount>>,
+
+    #[account(
+        init_if_needed,
+        payer = payer,
+        associated_token::mint = mint_b,
+        associated_token::authority = pool_authority,
+    )]
+    pub user_account_b: Box<Account<'info, TokenAccount>>,
     #[account(
         
         init_if_needed,

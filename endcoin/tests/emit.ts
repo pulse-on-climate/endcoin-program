@@ -25,6 +25,10 @@ const AGGREGATOR_PUBKEY = new PublicKey(
   "GfQVY4j7mjd4gcJJEe4rkFsSQxdHLMNTo36dWCdhg64S"
 );
 
+const USER_PUBKEY = new PublicKey(
+  "DTrsex7XGyS6QstUr4GFZ4cHYEm4YoeD75799A7ns7Sc"
+);
+
 describe("Endcoin", () => {
   // Helpers
   const confirm = async (signature: string): Promise<string> => {
@@ -108,6 +112,19 @@ describe("Endcoin", () => {
   );
 
 
+  // USER ATAS //
+  let userAccountA = getAssociatedTokenAddressSync(
+    mintA.publicKey,
+    USER_PUBKEY,
+    true
+  );
+
+  let userAccountB = getAssociatedTokenAddressSync(
+    mintB.publicKey,
+    USER_PUBKEY,
+    true
+  );
+
   it("Generate Tokens", async () => {
 
       let SwitchboardPrograms = await SwitchboardProgram.load(
@@ -132,8 +149,11 @@ describe("Endcoin", () => {
       mintLiquidity: mintLp.publicKey,
       mintA: mintA.publicKey,
       mintB: mintB.publicKey,
+      userPayer: USER_PUBKEY,
       poolAccountA: poolAccountA,
       poolAccountB: poolAccountB,
+      userAccountA: userAccountA,
+      userAccountB: userAccountB,
       mintAuthority: mintAuthority,
       depositorAccountLiquidity: liquidityAccount,
       sst: sst
@@ -147,8 +167,17 @@ describe("Endcoin", () => {
       let PoolBBalance = await connection.getTokenAccountBalance(
         poolAccountB
       );
+      // console log the new pool a and pool b token amounts
+      let UserABalance = await connection.getTokenAccountBalance(
+        userAccountA
+      );
+      let UserBBalance = await connection.getTokenAccountBalance(
+        userAccountB
+      );
       console.log(`The Temperature: ${latestValue}`);
       console.log(`Pool A Balance: ${PoolABalance.value.amount}`);
       console.log(`Pool B Balance: ${PoolBBalance.value.amount}`);
+      console.log(`User A Balance: ${PoolABalance.value.amount}`);
+      console.log(`User B Balance: ${PoolBBalance.value.amount}`);
 });
 });
