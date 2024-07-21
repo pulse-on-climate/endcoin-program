@@ -149,7 +149,7 @@ describe("Endcoin", () => {
       mintLiquidity: mintLp.publicKey,
       mintA: mintA.publicKey,
       mintB: mintB.publicKey,
-      userPayer: USER_PUBKEY,
+      userAuthority: USER_PUBKEY,
       poolAccountA: poolAccountA,
       poolAccountB: poolAccountB,
       userAccountA: userAccountA,

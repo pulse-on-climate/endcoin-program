@@ -191,8 +191,9 @@ pub struct DepositLiquidity<'info> {
     /// The account paying for all rents
     #[account(mut)]
     pub payer: Signer<'info>,
+    /// CHECK: Read only authority
     #[account(mut)]
-    pub user_payer: Signer<'info>,
+    pub user_authority: AccountInfo<'info>,
 
     #[account(mut)]
     pub mint_liquidity: Box<Account<'info, Mint>>,
@@ -221,7 +222,7 @@ pub struct DepositLiquidity<'info> {
         init_if_needed,
         payer = payer,
         associated_token::mint = mint_a,
-        associated_token::authority = pool_authority,
+        associated_token::authority = user_authority,
     )]
     pub user_account_a: Box<Account<'info, TokenAccount>>,
 
@@ -229,9 +230,10 @@ pub struct DepositLiquidity<'info> {
         init_if_needed,
         payer = payer,
         associated_token::mint = mint_b,
-        associated_token::authority = pool_authority,
+        associated_token::authority = user_authority,
     )]
     pub user_account_b: Box<Account<'info, TokenAccount>>,
+
     #[account(
         
         init_if_needed,
