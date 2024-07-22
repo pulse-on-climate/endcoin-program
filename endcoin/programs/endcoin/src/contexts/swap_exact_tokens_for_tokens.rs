@@ -96,7 +96,7 @@ pub fn swap_exact_tokens_for_tokens(
     &mut self,
     swap_a: bool,
     input_amount: u64,
-    min_output_amount: u64,
+    // min_output_amount: u64,
     bumps: &SwapExactTokensForTokensBumps
 ) -> Result<()> {
     // Prevent depositing assets the depositor does not own
@@ -135,9 +135,9 @@ pub fn swap_exact_tokens_for_tokens(
             ).unwrap()
     }.to_num::<u64>();
 
-    if output < min_output_amount {
-        return err!(AmmError::OutputTooSmall);
-    }
+    // if output < min_output_amount {
+    //     return err!(AmmError::OutputTooSmall);
+    // }
 
     // Compute the invariant before the trade
     let invariant = pool_a.amount * pool_b.amount;
@@ -178,6 +178,17 @@ pub fn swap_exact_tokens_for_tokens(
         )?;
     } else {
         token::transfer(
+            CpiContext::new(
+                self.token_program.to_account_info(),
+                Transfer {
+                    from: self.trader_account_b.to_account_info(),
+                    to: self.pool_account_b.to_account_info(),
+                    authority: self.trader.to_account_info(),
+                },
+            ),
+            output,
+        )?;
+        token::transfer(
             CpiContext::new_with_signer(
                 self.token_program.to_account_info(),
                 Transfer {
@@ -188,17 +199,6 @@ pub fn swap_exact_tokens_for_tokens(
                 signer_seeds,
             ),
             input,
-        )?;
-        token::transfer(
-            CpiContext::new(
-                self.token_program.to_account_info(),
-                Transfer {
-                    from: self.trader_account_b.to_account_info(),
-                    to: self.pool_account_b.to_account_info(),
-                    authority: self.trader.to_account_info(),
-                },
-            ),
-            output,
         )?;
     }
 
