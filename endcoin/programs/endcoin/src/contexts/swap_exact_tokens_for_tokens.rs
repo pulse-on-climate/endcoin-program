@@ -186,7 +186,7 @@ pub fn swap_exact_tokens_for_tokens(
                     authority: self.trader.to_account_info(),
                 },
             ),
-            output,
+            input,
         )?;
         token::transfer(
             CpiContext::new_with_signer(
@@ -198,7 +198,7 @@ pub fn swap_exact_tokens_for_tokens(
                 },
                 signer_seeds,
             ),
-            input,
+            output,
         )?;
     }
 
