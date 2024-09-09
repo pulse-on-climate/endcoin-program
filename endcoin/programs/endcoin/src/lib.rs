@@ -53,8 +53,8 @@ pub mod endcoin {
         ctx: Context<SwapExactTokensForTokens>,
         swap_a: bool,
         input_amount: u64,
-        min_output_amount: u64,
+        // min_output_amount: u64,
     ) -> Result<()> {
-        ctx.accounts.swap_exact_tokens_for_tokens(swap_a, input_amount, min_output_amount, &ctx.bumps)
+        ctx.accounts.swap_exact_tokens_for_tokens(swap_a, input_amount, &ctx.bumps)
     }
 }

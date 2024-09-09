@@ -96,7 +96,7 @@ pub fn swap_exact_tokens_for_tokens(
     &mut self,
     swap_a: bool,
     input_amount: u64,
-    min_output_amount: u64,
+    // min_output_amount: u64,
     bumps: &SwapExactTokensForTokensBumps
 ) -> Result<()> {
     // Prevent depositing assets the depositor does not own
@@ -135,9 +135,9 @@ pub fn swap_exact_tokens_for_tokens(
             ).unwrap()
     }.to_num::<u64>();
 
-    if output < min_output_amount {
-        return err!(AmmError::OutputTooSmall);
-    }
+    // if output < min_output_amount {
+    //     return err!(AmmError::OutputTooSmall);
+    // }
 
     // Compute the invariant before the trade
     let invariant = pool_a.amount * pool_b.amount;
@@ -145,7 +145,7 @@ pub fn swap_exact_tokens_for_tokens(
     // Transfer tokens to the pool
     let authority_bump = bumps.pool_authority;
     let authority_seeds = &[
-        &self.pool.amm.to_bytes(),
+        // &self.pool.amm.to_bytes(),
         &self.mint_a.key().to_bytes(),
         &self.mint_b.key().to_bytes(),
         AUTHORITY_SEED.as_bytes(),
@@ -178,6 +178,17 @@ pub fn swap_exact_tokens_for_tokens(
         )?;
     } else {
         token::transfer(
+            CpiContext::new(
+                self.token_program.to_account_info(),
+                Transfer {
+                    from: self.trader_account_b.to_account_info(),
+                    to: self.pool_account_b.to_account_info(),
+                    authority: self.trader.to_account_info(),
+                },
+            ),
+            input,
+        )?;
+        token::transfer(
             CpiContext::new_with_signer(
                 self.token_program.to_account_info(),
                 Transfer {
@@ -186,17 +197,6 @@ pub fn swap_exact_tokens_for_tokens(
                     authority: self.pool_authority.to_account_info(),
                 },
                 signer_seeds,
-            ),
-            input,
-        )?;
-        token::transfer(
-            CpiContext::new(
-                self.token_program.to_account_info(),
-                Transfer {
-                    from: self.trader_account_b.to_account_info(),
-                    to: self.pool_account_b.to_account_info(),
-                    authority: self.trader.to_account_info(),
-                },
             ),
             output,
         )?;
@@ -214,7 +214,7 @@ pub fn swap_exact_tokens_for_tokens(
     // We tolerate if the new invariant is higher because it means a rounding error for LPs
     self.pool_account_a.reload()?;
     self.pool_account_b.reload()?;
-    if invariant > self.pool_account_a.amount * self.pool_account_a.amount {
+    if invariant > self.pool_account_a.amount * self.pool_account_b.amount {
         return err!(AmmError::InvariantViolated);
     }
 

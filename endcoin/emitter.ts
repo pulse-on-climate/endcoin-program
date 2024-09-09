@@ -1,6 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
 import Big from "big.js";
-import { IDL, Endcoin } from "../target/types/endcoin";
+import { IDL, Endcoin } from "./target/types/endcoin";
 import { 
   PublicKey, 
   Keypair,
@@ -13,11 +13,11 @@ import {
 } from "@switchboard-xyz/solana.js";
 
 import { getAssociatedTokenAddressSync } from "@solana/spl-token";
-import wallet_key from "./keys/wba-wallet.json"
-import endcoin_key from "./keys/ENDxPmLfBBTVby7DBYUo4gEkFABQgvLP2LydFCzGGBee.json"
-import gaiacoin_key from "./keys/GAiAxUPQrUaELAuri8tVC354bGuUGGykCN8tP4qfCeSp.json"
-import pulse_key from "./keys/PLSxiYHus8rhc2NhXs2qvvhAcpsa4Q3TzTCi3o8xAEU.json"
-import the_keypair from "./keys/keyvSSnFs5p6ya3wGkx1VkJdhP1Xa8VxBhVLg1d1FUK.json"
+import wallet_key from "./tests/keys/wba-wallet.json"
+import endcoin_key from "./tests/keys/ENDxPmLfBBTVby7DBYUo4gEkFABQgvLP2LydFCzGGBee.json"
+import gaiacoin_key from "./tests/keys/GAiAxUPQrUaELAuri8tVC354bGuUGGykCN8tP4qfCeSp.json"
+import pulse_key from "./tests/keys/PLSxiYHus8rhc2NhXs2qvvhAcpsa4Q3TzTCi3o8xAEU.json"
+import the_keypair from "./tests/keys/keyvSSnFs5p6ya3wGkx1VkJdhP1Xa8VxBhVLg1d1FUK.json"
 
 let latestValue = 21.00;
 
@@ -29,7 +29,11 @@ const USER_PUBKEY = new PublicKey(
   "DTrsex7XGyS6QstUr4GFZ4cHYEm4YoeD75799A7ns7Sc"
 );
 
-describe("Endcoin", () => {
+
+
+
+
+
   // Helpers
   const confirm = async (signature: string): Promise<string> => {
     const block = await connection.getLatestBlockhash();
@@ -111,7 +115,6 @@ describe("Endcoin", () => {
     true
   );
 
-
   // USER ATAS //
   let userAccountA = getAssociatedTokenAddressSync(
     mintA.publicKey,
@@ -125,59 +128,79 @@ describe("Endcoin", () => {
     true
   );
 
-  it("Generate Tokens", async () => {
+   async function generateTokens() {
 
       let SwitchboardPrograms = await SwitchboardProgram.load(
         new Connection("https://api.devnet.solana.com")
       );
-    
+
       const aggregatorAccount = new AggregatorAccount(SwitchboardPrograms, AGGREGATOR_PUBKEY);
+      
+      const ws = aggregatorAccount.onChange((aggregator) => {
+        const result = AggregatorAccount.decodeLatestValue(aggregator);
+        if (result !== null) {
+          emitTokens();
+        }
+    });
+   };
+
+
+    async function emitTokens() {
+
+        let SwitchboardPrograms = await SwitchboardProgram.load(
+            new Connection("https://api.devnet.solana.com")
+            );
     
-      const result: Big | null = await aggregatorAccount.fetchLatestValue();
-      if (result === null) {
-        throw new Error("Aggregator holds no value");
-      }
-      console.log(result.toString());
-      latestValue = result;
+            const aggregatorAccount = new AggregatorAccount(SwitchboardPrograms, AGGREGATOR_PUBKEY);
 
-  await program.methods
-    .depositLiquidity(latestValue)
-    .accounts({
-      pool: poolKey,
-      poolAuthority: poolAuthority,
-      payer: keypair.publicKey,
-      mintLiquidity: mintLp.publicKey,
-      mintA: mintA.publicKey,
-      mintB: mintB.publicKey,
-      userAuthority: USER_PUBKEY,
-      poolAccountA: poolAccountA,
-      poolAccountB: poolAccountB,
-      userAccountA: userAccountA,
-      userAccountB: userAccountB,
-      mintAuthority: mintAuthority,
-      depositorAccountLiquidity: liquidityAccount,
-      sst: sst
-    })
-    .signers([keypair]).rpc({ skipPreflight: true }).then(confirm).then(log);
+        const result: Big | null = await aggregatorAccount.fetchLatestValue();
+        if (result === null) {
+            throw new Error("Aggregator holds no value");
+        }
+        console.log(result.toString());
+        latestValue = result;
+    
+    await program.methods
+        .depositLiquidity(latestValue)
+        .accounts({
+        pool: poolKey,
+        poolAuthority: poolAuthority,
+        payer: keypair.publicKey,
+        mintLiquidity: mintLp.publicKey,
+        mintA: mintA.publicKey,
+        mintB: mintB.publicKey,
+        userAuthority: USER_PUBKEY,
+        poolAccountA: poolAccountA,
+        poolAccountB: poolAccountB,
+        userAccountA: userAccountA,
+        userAccountB: userAccountB,
+        mintAuthority: mintAuthority,
+        depositorAccountLiquidity: liquidityAccount,
+        sst: sst
+        })
+        .signers([keypair]).rpc({ skipPreflight: true }).then(confirm).then(log);
+    
+        // console log the new pool a and pool b token amounts
+        let PoolABalance = await connection.getTokenAccountBalance(
+            poolAccountA
+        );
+        let PoolBBalance = await connection.getTokenAccountBalance(
+            poolAccountB
+        );
+        // console log the new pool a and pool b token amounts
+        let UserABalance = await connection.getTokenAccountBalance(
+            userAccountA
+        );
+        let UserBBalance = await connection.getTokenAccountBalance(
+            userAccountB
+        );
+        console.log(`The Temperature: ${latestValue}`);
+        console.log(`Pool A Balance: ${PoolABalance.value.amount}`);
+        console.log(`Pool B Balance: ${PoolBBalance.value.amount}`);
+        console.log(`User A Balance: ${UserABalance.value.amount}`);
+        console.log(`User B Balance: ${UserBBalance.value.amount}`);
 
-      // console log the new pool a and pool b token amounts
-      let PoolABalance = await connection.getTokenAccountBalance(
-        poolAccountA
-      );
-      let PoolBBalance = await connection.getTokenAccountBalance(
-        poolAccountB
-      );
-      // console log the new pool a and pool b token amounts
-      let UserABalance = await connection.getTokenAccountBalance(
-        userAccountA
-      );
-      let UserBBalance = await connection.getTokenAccountBalance(
-        userAccountB
-      );
-      console.log(`The Temperature: ${latestValue}`);
-      console.log(`Pool A Balance: ${PoolABalance.value.amount}`);
-      console.log(`Pool B Balance: ${PoolBBalance.value.amount}`);
-      console.log(`User A Balance: ${PoolABalance.value.amount}`);
-      console.log(`User B Balance: ${PoolBBalance.value.amount}`);
-});
-});
+    };
+
+generateTokens();
+
