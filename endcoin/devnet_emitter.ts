@@ -128,21 +128,21 @@ const USER_PUBKEY = new PublicKey(
     true
   );
 
-   async function generateTokens() {
+  //  async function generateTokens() {
 
-      let SwitchboardPrograms = await SwitchboardProgram.load(
-        new Connection("https://api.devnet.solana.com")
-      );
+  //     let SwitchboardPrograms = await SwitchboardProgram.load(
+  //       new Connection("https://api.devnet.solana.com")
+  //     );
 
-      const aggregatorAccount = new AggregatorAccount(SwitchboardPrograms, AGGREGATOR_PUBKEY);
+  //     const aggregatorAccount = new AggregatorAccount(SwitchboardPrograms, AGGREGATOR_PUBKEY);
       
-      const ws = aggregatorAccount.onChange((aggregator) => {
-        const result = AggregatorAccount.decodeLatestValue(aggregator);
-        if (result !== null) {
-          emitTokens();
-        }
-    });
-   };
+  //     const ws = aggregatorAccount.onChange((aggregator) => {
+  //       const result = AggregatorAccount.decodeLatestValue(aggregator);
+  //       if (result !== null) {
+  //         emitTokens();
+  //       }
+  //   });
+  //  };
 
 
     async function emitTokens() {
@@ -180,27 +180,27 @@ const USER_PUBKEY = new PublicKey(
         })
         .signers([keypair]).rpc({ skipPreflight: true }).then(confirm).then(log);
     
-        // console log the new pool a and pool b token amounts
-        let PoolABalance = await connection.getTokenAccountBalance(
-            poolAccountA
-        );
-        let PoolBBalance = await connection.getTokenAccountBalance(
-            poolAccountB
-        );
-        // console log the new pool a and pool b token amounts
-        let UserABalance = await connection.getTokenAccountBalance(
-            userAccountA
-        );
-        let UserBBalance = await connection.getTokenAccountBalance(
-            userAccountB
-        );
-        console.log(`The Temperature: ${latestValue}`);
-        console.log(`Pool A Balance: ${PoolABalance.value.amount}`);
-        console.log(`Pool B Balance: ${PoolBBalance.value.amount}`);
-        console.log(`User A Balance: ${UserABalance.value.amount}`);
-        console.log(`User B Balance: ${UserBBalance.value.amount}`);
+        // // console log the new pool a and pool b token amounts
+        // let PoolABalance = await connection.getTokenAccountBalance(
+        //     poolAccountA
+        // );
+        // let PoolBBalance = await connection.getTokenAccountBalance(
+        //     poolAccountB
+        // );
+        // // console log the new pool a and pool b token amounts
+        // let UserABalance = await connection.getTokenAccountBalance(
+        //     userAccountA
+        // );
+        // let UserBBalance = await connection.getTokenAccountBalance(
+        //     userAccountB
+        // );
+        // console.log(`The Temperature: ${latestValue}`);
+        // console.log(`Pool A Balance: ${PoolABalance.value.amount}`);
+        // console.log(`Pool B Balance: ${PoolBBalance.value.amount}`);
+        // console.log(`User A Balance: ${UserABalance.value.amount}`);
+        // console.log(`User B Balance: ${UserBBalance.value.amount}`);
 
     };
 
-generateTokens();
+    emitTokens();
 
