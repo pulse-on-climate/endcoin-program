@@ -7,3 +7,4 @@ endcoin/deployment/keys/*
 endcoin/tests/keys/*
 endcoin/deployment/keys/wba-wallet.json
 .DS_Store
+.venv
