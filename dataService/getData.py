@@ -67,7 +67,7 @@ for url in baseurls:
 
 
 
-# data = xr.open_dataset("https://www.ncei.noaa.gov/data/sea-surface-temperature-optimum-interpolation/v2.1/access/avhrr/202312/oisst-avhrr-v02r01.20231201.nc", decode_times=False)
+data = xr.open_dataset("https://www.ncei.noaa.gov/data/sea-surface-temperature-optimum-interpolation/v2.1/access/avhrr/202312/oisst-avhrr-v02r01.20231201.nc", decode_times=False)
 # print(data)
 print("The data" )
 
