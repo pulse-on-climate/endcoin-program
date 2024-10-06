@@ -148,7 +148,7 @@ pub fn swap_exact_tokens_for_tokens(
         // &self.pool.amm.to_bytes(),
         &self.mint_a.key().to_bytes(),
         &self.mint_b.key().to_bytes(),
-        AUTHORITY_SEED.as_bytes(),
+        AUTHORITY_SEED,
         &[authority_bump],
     ];
     let signer_seeds = &[&authority_seeds[..]];
