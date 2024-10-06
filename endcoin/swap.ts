@@ -1,5 +1,5 @@
 import * as anchor from "@coral-xyz/anchor";
-import { IDL, Endcoin } from "../target/types/endcoin";
+import { IDL, Endcoin } from "./target/types/endcoin";
 import { 
     PublicKey, 
     Keypair,
@@ -10,10 +10,10 @@ import { expect } from "chai";
 // import { TestValues, createValues, mintingTokens } from "./utils";
 import { BN } from "bn.js";
 import { getAssociatedTokenAddressSync } from "@solana/spl-token";
-import wallet_key from "./keys/wba-wallet.json"
-import endcoin_key from "./keys/ENDxPmLfBBTVby7DBYUo4gEkFABQgvLP2LydFCzGGBee.json"
-import gaiacoin_key from "./keys/GAiAxUPQrUaELAuri8tVC354bGuUGGykCN8tP4qfCeSp.json"
-import pulse_key from "./keys/PLSxiYHus8rhc2NhXs2qvvhAcpsa4Q3TzTCi3o8xAEU.json"
+import wallet_key from "./tests/keys/wba-wallet.json"
+import endcoin_key from "./tests/keys/ENDxPmLfBBTVby7DBYUo4gEkFABQgvLP2LydFCzGGBee.json"
+import gaiacoin_key from "./tests/keys/GAiAxUPQrUaELAuri8tVC354bGuUGGykCN8tP4qfCeSp.json"
+import pulse_key from "./tests/keys/PLSxiYHus8rhc2NhXs2qvvhAcpsa4Q3TzTCi3o8xAEU.json"
   // Configure the client to use the devnet cluster.
   
   describe("Swap", () => {

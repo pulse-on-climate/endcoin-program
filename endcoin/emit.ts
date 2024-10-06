@@ -1,6 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
 import Big from "big.js";
-import { IDL, Endcoin } from "../target/types/endcoin";
+import { IDL, Endcoin } from "./target/types/endcoin";
 import { 
   PublicKey, 
   Keypair,
@@ -13,11 +13,11 @@ import {
 } from "@switchboard-xyz/solana.js";
 
 import { getAssociatedTokenAddressSync } from "@solana/spl-token";
-import wallet_key from "./keys/wba-wallet.json"
-import endcoin_key from "./keys/ENDxPmLfBBTVby7DBYUo4gEkFABQgvLP2LydFCzGGBee.json"
-import gaiacoin_key from "./keys/GAiAxUPQrUaELAuri8tVC354bGuUGGykCN8tP4qfCeSp.json"
-import pulse_key from "./keys/PLSxiYHus8rhc2NhXs2qvvhAcpsa4Q3TzTCi3o8xAEU.json"
-import the_keypair from "./keys/keyvSSnFs5p6ya3wGkx1VkJdhP1Xa8VxBhVLg1d1FUK.json"
+import wallet_key from "./tests/keys/wba-wallet.json"
+import endcoin_key from "./tests/keys/ENDxPmLfBBTVby7DBYUo4gEkFABQgvLP2LydFCzGGBee.json"
+import gaiacoin_key from "./tests/keys/GAiAxUPQrUaELAuri8tVC354bGuUGGykCN8tP4qfCeSp.json"
+import pulse_key from "./tests/keys/PLSxiYHus8rhc2NhXs2qvvhAcpsa4Q3TzTCi3o8xAEU.json"
+import the_keypair from "./tests/keys/keyvSSnFs5p6ya3wGkx1VkJdhP1Xa8VxBhVLg1d1FUK.json"
 
 let latestValue = 21.00;
 

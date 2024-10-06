@@ -1,8 +1,8 @@
-import * as anchor from "@project-serum/anchor";
-import { Program } from "@project-serum/anchor";
 import { Endcoin } from "../target/types/endcoin";
 import { expect } from "chai";
 import { TestValues, createValues, expectRevert } from "./utils";
+import { Program } from "@coral-xyz/anchor";
+import * as anchor from "@coral-xyz/anchor";
 
 let ANCHOR_PROVIDER_URL = "https://api.devnet.solana.com";
   const provider = anchor.AnchorProvider.env();
@@ -36,7 +36,7 @@ let ANCHOR_PROVIDER_URL = "https://api.devnet.solana.com";
         values.fee
       )
       .accounts({ 
-        amm: values.ammKey, 
+        //amm: values.ammKey, 
         admin: values.admin.publicKey 
       })
       .rpc({skipPreflight: true}).then(confirm).then(log);

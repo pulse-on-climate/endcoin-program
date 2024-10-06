@@ -12,11 +12,8 @@ pub struct Amm {
 
     pub created: bool
 }
-
 impl Amm {
-
     pub const LEN: usize = 8 + 32 + 32 + 2 + 1;
-
 }
 
 #[account]

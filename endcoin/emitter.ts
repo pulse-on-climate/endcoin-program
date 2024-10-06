@@ -1,6 +1,7 @@
 import * as anchor from "@coral-xyz/anchor";
+import { Program } from "@coral-xyz/anchor";
 import Big from "big.js";
-import { IDL, Endcoin } from "./target/types/endcoin";
+import { Endcoin } from "./target/types/endcoin";
 import { 
   PublicKey, 
   Keypair,
@@ -58,7 +59,7 @@ const USER_PUBKEY = new PublicKey(
 
   const programId = new PublicKey("3ueQV5DMwmnif9JBmf7SSvD6Lsf13nBu4dzCQfsjZX3d");
 
-  const program = new anchor.Program<Endcoin>(IDL, programId, provider);
+  const program = anchor.workspace.Endcoin as Program<Endcoin>;
   
   // KEYS //
   let mintA = anchor.web3.Keypair.fromSecretKey(new Uint8Array(endcoin_key)); // replace with endcoin file
@@ -162,21 +163,24 @@ const USER_PUBKEY = new PublicKey(
     
     await program.methods
         .depositLiquidity(latestValue)
-        .accounts({
-        pool: poolKey,
-        poolAuthority: poolAuthority,
-        payer: keypair.publicKey,
-        mintLiquidity: mintLp.publicKey,
-        mintA: mintA.publicKey,
-        mintB: mintB.publicKey,
-        userAuthority: USER_PUBKEY,
-        poolAccountA: poolAccountA,
-        poolAccountB: poolAccountB,
-        userAccountA: userAccountA,
-        userAccountB: userAccountB,
-        mintAuthority: mintAuthority,
-        depositorAccountLiquidity: liquidityAccount,
-        sst: sst
+        .accountsStrict({
+          pool: poolKey,
+          poolAuthority: poolAuthority,
+          payer: keypair.publicKey,
+          mintLiquidity: mintLp.publicKey,
+          mintA: mintA.publicKey,
+          mintB: mintB.publicKey,
+          userAuthority: USER_PUBKEY,
+          poolAccountA: poolAccountA,
+          poolAccountB: poolAccountB,
+          userAccountA: userAccountA,
+          userAccountB: userAccountB,
+          mintAuthority: mintAuthority,
+          depositorAccountLiquidity: liquidityAccount,
+          sst: sst,
+          systemProgram: anchor.web3.SystemProgram.programId,
+          tokenProgram: "",
+          associatedTokenProgram: ""
         })
         .signers([keypair]).rpc({ skipPreflight: true }).then(confirm).then(log);
     

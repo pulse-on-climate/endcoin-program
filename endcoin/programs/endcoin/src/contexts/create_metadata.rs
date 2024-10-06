@@ -107,7 +107,7 @@ impl<'info> CreateMetadata<'info> {
             .update_authority(&self.mint_authority.to_account_info(), false)
             .system_program(&self.system_program.to_account_info())
             .sysvar_instructions(&self.sysvar_instruction.to_account_info())
-            .spl_token_program(&self.token_program.to_account_info())
+            .spl_token_program(Some(&self.token_program.to_account_info()))
             .name(name.to_string())
             .symbol(symbol.to_string())
             .uri(uri.to_string())

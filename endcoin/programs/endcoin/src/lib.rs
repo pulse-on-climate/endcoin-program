@@ -14,11 +14,6 @@ declare_id!("3ueQV5DMwmnif9JBmf7SSvD6Lsf13nBu4dzCQfsjZX3d");
 pub mod endcoin {
     use super::*;
     
-
-    pub fn init(ctx: Context<Init>) -> Result<()> {
-        ctx.accounts.init()?;
-        Ok(())
-    }
     pub fn create_amm(ctx: Context<CreateAmm>, id: Pubkey, fee: u16) -> Result<()> {
         ctx.accounts.create_amm(id, fee)?;
         Ok(())
