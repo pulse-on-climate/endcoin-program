@@ -6,32 +6,20 @@ use anchor_spl::{
 use fixed::types::I64F64;
 
 use crate::{
-    constants::AUTHORITY_SEED,
+    constants::{AMM_SEED, AUTHORITY_SEED},
     errors::*,
-    state::{Amm, Pool},
+    state::Amm,
 };
 
 #[derive(Accounts)]
 pub struct SwapExactTokensForTokens<'info> {
     #[account(
         seeds = [
-        b"amm".as_ref(),
+            AMM_SEED,
         ],
         bump,
     )]
     pub amm: Account<'info, Amm>,
-
-    #[account(
-        seeds = [
-            pool.amm.as_ref(),
-            pool.mint_a.key().as_ref(),
-            pool.mint_b.key().as_ref(),
-        ],
-        bump,
-        has_one = mint_a,
-        has_one = mint_b,
-    )]
-    pub pool: Account<'info, Pool>,
 
     /// CHECK: Read only authority
     #[account(
@@ -39,7 +27,7 @@ pub struct SwapExactTokensForTokens<'info> {
         seeds = [
             mint_a.key().as_ref(),
             mint_b.key().as_ref(),
-            b"authority".as_ref(),
+            AUTHORITY_SEED,
         ],
         bump,
     )]
@@ -49,7 +37,6 @@ pub struct SwapExactTokensForTokens<'info> {
     pub trader: Signer<'info>,
 
     pub mint_a: Box<Account<'info, Mint>>,
-
     pub mint_b: Box<Account<'info, Mint>>,
 
     #[account(
@@ -86,10 +73,6 @@ pub struct SwapExactTokensForTokens<'info> {
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
 }
-
-
-
-
 
 impl<'info> SwapExactTokensForTokens<'info> {
 pub fn swap_exact_tokens_for_tokens(

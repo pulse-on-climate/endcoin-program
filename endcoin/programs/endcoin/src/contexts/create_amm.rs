@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use crate::{errors::*, state::{Amm, State}};
+use crate::{constants::AMM_SEED, errors::*, state::Amm};
 
 #[derive(Accounts)]
 #[instruction(id: Pubkey, fee: u16)]
@@ -10,7 +10,7 @@ pub struct CreateAmm<'info> {
         payer = payer,
         space = Amm::LEN,
         seeds = [
-        b"amm".as_ref(),
+            AMM_SEED,
         ],
         bump,
         constraint = fee < 10000 @ AmmError::InvalidFee,
@@ -20,17 +20,6 @@ pub struct CreateAmm<'info> {
     /// The admin of the AMM
     /// CHECK: Read only, delegatable creation
     pub admin: AccountInfo<'info>,
-
-    #[account(
-        init,
-        payer = payer,
-        space = State::LEN,
-        seeds = [
-            b"state".as_ref(),amm.key().as_ref()
-        ],
-        bump,
-    )]
-    pub state: Account<'info, State>,
 
     // The account paying for all rents
     #[account(mut)]
@@ -49,8 +38,8 @@ impl<'info> CreateAmm<'info> {
 // We will implement this later
 // 
 // if self.amm.created == true {
-//     msg!("AMM Already Exists");
-//     return Err(AmmError::AlreadyCreated.into());
+//     msg!("AMM Is Locked, Cannot Create");
+//     return Err(AmmError::Locked.into());
 // } else {
 
             // set inner values of amm

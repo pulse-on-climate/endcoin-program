@@ -8,7 +8,7 @@ mod constants;
 
 pub use contexts::*;
 pub mod contexts;
-declare_id!("3ueQV5DMwmnif9JBmf7SSvD6Lsf13nBu4dzCQfsjZX3d");
+declare_id!("6F5P1hrk6k9MTDBJy3J9NruxUWzv1RJhn3Najhao8qkn");
 
 #[program]
 pub mod endcoin {
@@ -27,16 +27,17 @@ pub mod endcoin {
         Ok(())
     }
 
-    pub fn create_metadata(ctx: Context<CreateMetadata>, token: u8) -> Result<()>
-    {
-        ctx.accounts.create_metadata(token, ctx.bumps)?;
-        Ok(())
-    }
+    // pub fn create_metadata(ctx: Context<CreateMetadata>, token: u8) -> Result<()>
+    // {
+    //     ctx.accounts.create_metadata(token, ctx.bumps)?;
+    //     Ok(())
+    // }
 
-    pub fn read_feed(ctx: Context<Switchboard>, params: ReadFeedParams) -> Result<()> {
-        ctx.accounts.read_feed(params)?;
-        Ok(())
-    }
+    // pub fn read_feed(ctx: Context<Switchboard>, params: ReadFeedParams) -> Result<()> {
+    //     ctx.accounts.read_feed(params)?;
+    //     Ok(())
+    // }
+
     pub fn deposit_liquidity(
         ctx: Context<DepositLiquidity>, mean_temp: f64
     ) -> Result<()> {
@@ -52,4 +53,25 @@ pub mod endcoin {
     ) -> Result<()> {
         ctx.accounts.swap_exact_tokens_for_tokens(swap_a, input_amount, &ctx.bumps)
     }
+
+
+    pub fn create_mint_account(
+        ctx: Context<CreateMintAccount>,
+        args: CreateMintAccountArgs,
+    ) -> Result<()> {
+        instructions::handler(ctx, args)
+    }
+
+    pub fn check_mint_extensions_constraints(
+        _ctx: Context<CheckMintExtensionConstraints>,
+    ) -> Result<()> {
+        Ok(())
+    }
+
+
+
+
+
+
+
 }

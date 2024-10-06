@@ -18,23 +18,6 @@ impl Amm {
 
 #[account]
 #[derive(Default)]
-pub struct Pool {
-
-    /// Primary key of the AMM
-    pub amm: Pubkey,
-    /// Mint of token A - Endcoin
-    pub mint_a: Pubkey,
-    /// Mint of token B - Gaiacoin
-    pub mint_b: Pubkey
-
-}
-
-impl Pool {
-    pub const LEN: usize = 8 + 32 + 32 + 32;
-}
-
-#[account]
-#[derive(Default)]
 pub struct SST {
     /// temperature value in degrees celsius
     pub temperature: f64,
@@ -46,7 +29,7 @@ impl SST {
 
 #[account]
 #[derive(Default)]
-pub struct State {
+pub struct Pool {
     /// Primary key of the AMM
     pub amm: Pubkey,
     /// Mint of token A - Endcoin
@@ -55,6 +38,6 @@ pub struct State {
     pub mint_b: Pubkey,
 
 }
-impl State {
+impl Pool {
     pub const LEN: usize = 8 + 32*3;
 }

@@ -6,10 +6,8 @@ use anchor_spl::{
 use fixed::types::I64F64;
 use fixed_sqrt::FixedSqrt;
 
-use crate::{
-     state::Pool, 
-     state::SST
-};
+use crate::{state::SST, Pool}
+;
 
 impl<'info> DepositLiquidity<'info> { 
 pub fn deposit_liquidity(

@@ -5,14 +5,14 @@ use anchor_spl::{
 };
 
 use crate::{
-    constants::AUTHORITY_SEED, state::{State, Amm, Pool}
+    constants::{AMM_SEED, AUTHORITY_SEED}, state::{Amm, Pool}
 };
 
 #[derive(Accounts)]
 pub struct CreatePool<'info> {
     #[account(
         seeds = [
-        b"amm".as_ref(),
+            AMM_SEED,
         ],
         bump,
     )]
@@ -35,9 +35,6 @@ pub struct CreatePool<'info> {
     /// CHECK: Read only authority
     #[account(
         seeds = [
-            //amm.key().as_ref(),
-            mint_a.key().as_ref(),
-            mint_b.key().as_ref(),
             AUTHORITY_SEED.as_ref(),
         ],
         bump,
@@ -51,15 +48,10 @@ pub struct CreatePool<'info> {
         mint::authority = pool_authority,
     )]
     pub mint_liquidity: Box<Account<'info, Mint>>,
-    #[account(
-       mut,
-       // address = state.mint_a, //set this to state endcoin address 
-    )]
+    
+    #[account(mut)]
     pub mint_a: Box<Account<'info, Mint>>,
-    #[account(
-        mut,
-        //address = state.mint_b, //set this to state gaiacoin address 
-    )]
+    #[account(mut)]
     pub mint_b: Box<Account<'info, Mint>>,
 
     #[account(
@@ -94,21 +86,9 @@ pub struct CreatePool<'info> {
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
-    #[account(
-        seeds = [
-        b"state".as_ref(),
-        amm.key().as_ref(),
-        ],
-        bump,
-    )]
-    pub state: Account<'info, State>,
 }
 
-
-
 // IMPL 
-
-
 impl<'info> CreatePool<'info> {
     pub fn create_pool(
         &mut self,
