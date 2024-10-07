@@ -1026,7 +1026,6 @@ dependencies = [
  "spl-tlv-account-resolution",
  "spl-transfer-hook-interface",
  "spl-type-length-value",
- "switchboard-solana",
  "toml_datetime",
  "winnow 0.5.34",
 ]
@@ -2616,25 +2615,6 @@ name = "subtle"
 version = "2.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6bdef32e8150c2a081110b42772ffe7d7c9032b606bc226c8260fd97e0976601"
-
-[[package]]
-name = "superslice"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ab16ced94dbd8a46c82fd81e3ed9a8727dac2977ea869d217bcc4ea1f122e81f"
-
-[[package]]
-name = "switchboard-solana"
-version = "0.30.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "85677f5632be477addfc08e63b096289f33f00fb23c3a1471c1c178ffb5d3012"
-dependencies = [
- "anchor-lang",
- "bytemuck",
- "lazy_static",
- "rust_decimal",
- "superslice",
-]
 
 [[package]]
 name = "syn"

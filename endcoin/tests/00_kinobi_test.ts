@@ -146,8 +146,8 @@ describe('Endcoin tests', () => {
           admin: testEnv.authority.address,
           payer: testEnv.authority,
           systemProgram: address(SYSTEM_PROGRAM_ID), // not this one
-          id: programClient.ENDCOIN_PROGRAM_ADDRESS, // not this one
-          fee: 500
+          id: testEnv.amm, // not this one
+          fee: 15000
       });
       await pipe(
         await createDefaultTransaction(testEnv),

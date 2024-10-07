@@ -8,25 +8,47 @@ mod constants;
 
 pub use contexts::*;
 pub mod contexts;
+
 declare_id!("6F5P1hrk6k9MTDBJy3J9NruxUWzv1RJhn3Najhao8qkn");
 
 #[program]
 pub mod endcoin {
     use super::*;
     
-    pub fn create_amm(ctx: Context<CreateAmm>, id: Pubkey, fee: u16) -> Result<()> {
-        ctx.accounts.create_amm(id, fee)?;
-        Ok(())
-    }
-    pub fn create_sst(ctx: Context<CreateSST>) -> Result<()> {
+
+    pub fn initialize(ctx: Context<Initialize>, id: Pubkey, fee: u16, args: bool) -> Result<()> {
+
+        // create SST
         ctx.accounts.create_sst()?;
-        Ok(())
-    }
-    pub fn create_pool(ctx: Context<CreatePool>) -> Result<()> {
+        // create AMM
+        ctx.accounts.create_amm(id, fee)?;
+        // create token metadata
+        ctx.accounts.initialize_token_metadata(args)?;
+        ctx.accounts.initialize_token_metadata(!args)?;
+        // create pool account
         ctx.accounts.create_pool(ctx.bumps)?;
+
         Ok(())
     }
 
+    // pub fn create_amm(ctx: Context<CreateAmm>, id: Pubkey, fee: u16) -> Result<()> {
+    //     ctx.accounts.create_amm(id, fee)?;
+    //     Ok(())
+    // }
+    // pub fn create_sst(ctx: Context<CreateSST>) -> Result<()> {
+    //     ctx.accounts.create_sst()?;
+    //     Ok(())
+    // }
+    // pub fn create_pool(ctx: Context<CreatePool>) -> Result<()> {
+    //     ctx.accounts.create_pool(ctx.bumps)?;
+    //     Ok(())
+    // }
+    pub fn create_mint_account(
+        ctx: Context<Initialize>,
+        args: InitializeArgs,
+    ) -> Result<()> {
+        instructions::handler(ctx, args)
+    }
     // pub fn create_metadata(ctx: Context<CreateMetadata>, token: u8) -> Result<()>
     // {
     //     ctx.accounts.create_metadata(token, ctx.bumps)?;
@@ -55,12 +77,12 @@ pub mod endcoin {
     }
 
 
-    pub fn create_mint_account(
-        ctx: Context<CreateMintAccount>,
-        args: CreateMintAccountArgs,
-    ) -> Result<()> {
-        instructions::handler(ctx, args)
-    }
+    // pub fn create_mint_account(
+    //     ctx: Context<CreateMintAccount>,
+    //     args: CreateMintAccountArgs,
+    // ) -> Result<()> {
+    //     instructions::handler(ctx, args)
+    // }
 
     pub fn check_mint_extensions_constraints(
         _ctx: Context<CheckMintExtensionConstraints>,

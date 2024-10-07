@@ -7,134 +7,276 @@ use anchor_spl::{
         mint_close_authority::MintCloseAuthority, permanent_delegate::PermanentDelegate,
         transfer_hook::TransferHook,
     },
+    token::{mint_to, MintTo},
     token_interface::{
         spl_token_metadata_interface::state::TokenMetadata, token_metadata_initialize, Mint,
         Token2022, TokenAccount, TokenMetadataInitialize,
     },
 };
+
 use spl_pod::optional_keys::OptionalNonZeroPubkey;
 
 use crate::{
-    constants::{AMM_SEED, META_LIST_ACCOUNT_SEED}, get_meta_list_size, get_mint_extensible_extension_data, get_mint_extension_data, update_account_lamports_to_minimum_balance,
+    constants::{AMM_SEED, AUTHORITY_SEED, META_LIST_ACCOUNT_SEED, POOL_AUTHORITY_SEED, SST_SEED}, get_meta_list_size, get_mint_extensible_extension_data, get_mint_extension_data, update_account_lamports_to_minimum_balance, AmmError, SstError, SST
 };
 use crate::state::{Pool, Amm};
 
 #[derive(AnchorDeserialize, AnchorSerialize)]
-pub struct CreateMintAccountArgs {
+pub struct InitializeArgs {
     pub token: bool,
 }
 
 #[derive(Accounts)]
-#[instruction(args: CreateMintAccountArgs)]
-pub struct CreateMintAccount<'info> {
-    #[account(mut)]
-    pub payer: Signer<'info>,
-    #[account(mut)]
-    /// CHECK: can be any account
-    pub authority: Signer<'info>,
-    #[account()]
-    /// CHECK: can be any account
-    pub receiver: UncheckedAccount<'info>,
+#[instruction(args: InitializeArgs, id: Pubkey, fee: u16)]
+pub struct Initialize<'info> {
+
+    // SST Account
+    #[account(
+        init,
+        payer = payer,
+        space = SST::LEN,
+        seeds = [
+            SST_SEED,
+        ],
+        bump
+    )] pub sst: Account<'info, SST>,
+
+    // The AMM account
+    #[account(
+        init_if_needed,
+        payer = payer,
+        space = Amm::LEN,
+        seeds = [
+            AMM_SEED,
+        ],
+        bump,
+        constraint = fee < 10000 @ AmmError::InvalidFee,
+    )]
+    pub amm: Account<'info, Amm>,
+
+    /// The admin of the AMM
+    /// CHECK: Read only, delegatable creation
+    pub admin: AccountInfo<'info>,
+
+    // Endcoin Mint
+    #[account(
+        init,
+        signer,
+        payer = payer,
+        mint::token_program = token_program,
+        mint::decimals = 6,
+        mint::authority = authority,
+        mint::freeze_authority = authority,
+        extensions::metadata_pointer::authority = authority,
+        extensions::metadata_pointer::metadata_address = endcoin,
+        extensions::group_member_pointer::authority = authority,
+        extensions::group_member_pointer::member_address = endcoin,
+        extensions::transfer_hook::authority = authority,
+        extensions::transfer_hook::program_id = crate::ID,
+        extensions::close_authority::authority = authority,
+        extensions::permanent_delegate::delegate = authority,
+    )]
+    pub endcoin: Box<InterfaceAccount<'info, Mint>>,
+
+    // Gaiacoin Mint
+    #[account(
+        init,
+        signer,
+        payer = payer,
+        mint::token_program = token_program,
+        mint::decimals = 6,
+        mint::authority = authority,
+        mint::freeze_authority = authority,
+        extensions::metadata_pointer::authority = authority,
+        extensions::metadata_pointer::metadata_address = gaiacoin,
+        extensions::group_member_pointer::authority = authority,
+        extensions::group_member_pointer::member_address = gaiacoin,
+        extensions::transfer_hook::authority = authority,
+        extensions::transfer_hook::program_id = crate::ID,
+        extensions::close_authority::authority = authority,
+        extensions::permanent_delegate::delegate = authority,
+    )]
+    pub gaiacoin: Box<InterfaceAccount<'info, Mint>>,
+
+    // Endcoin Mint Token Account
+    #[account(
+        init,
+        payer = payer,
+        associated_token::token_program = token_program,
+        associated_token::mint = endcoin,
+        associated_token::authority = pool,
+    )]
+    pub endcoin_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
+
+    // Gaiacoin Mint Token Account
+    #[account(
+        init,
+        payer = payer,
+        associated_token::token_program = token_program,
+        associated_token::mint = gaiacoin,
+        associated_token::authority = pool,
+    )]
+    pub gaiacoin_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
+
+    // extra metas account
+    /// CHECK: This account's data is a buffer of TLV data
+    #[account(
+        init,
+        space = get_meta_list_size(None),
+        seeds = [META_LIST_ACCOUNT_SEED, endcoin.key().as_ref()],
+        bump,
+        payer = payer,
+    )]
+    pub extra_metas_account_endcoin: UncheckedAccount<'info>,
+        /// CHECK: This account's data is a buffer of TLV data
+        #[account(
+            init,
+            space = get_meta_list_size(None),
+            seeds = [META_LIST_ACCOUNT_SEED, gaiacoin.key().as_ref()],
+            bump,
+            payer = payer,
+        )]
+        pub extra_metas_account_gaiacoin: UncheckedAccount<'info>,
+
+    // Mint Authority
+    /// CHECK: Read only authority
     #[account(
         seeds = [
+            AUTHORITY_SEED.as_ref(),
+        ],
+        bump,
+    )]
+    pub authority: AccountInfo<'info>,
+
+    // the pool account
+    #[account(
+        init,
+        payer = payer,
+        space = Pool::LEN,
+        seeds = [
             amm.key().as_ref(),
-            mint_a.key().as_ref(),
-            mint_b.key().as_ref(),
+            endcoin.key().as_ref(),
+            gaiacoin.key().as_ref(),
         ],
         bump,
     )]
     pub pool: Account<'info, Pool>,
 
+    // pool endcoin mint ATA
+    #[account(
+        init_if_needed,
+        payer = payer,
+        associated_token::mint = endcoin,
+        associated_token::token_program = token_program,
+        associated_token::authority = pool_authority,
+    )]
+    pub pool_account_a: Box<InterfaceAccount<'info, TokenAccount>>,
+
+    // pool gaiacoin mint ATA
+    #[account(
+        init_if_needed,
+        payer = payer,
+        associated_token::mint = gaiacoin,
+        associated_token::token_program = token_program,
+        associated_token::authority = pool_authority,
+    )]
+    pub pool_account_b: Box<InterfaceAccount<'info, TokenAccount>>,
+
+    // pulse token mint
+    #[account(
+        init,
+        signer,
+        payer = payer,
+        mint::token_program = token_program,
+        mint::decimals = 6,
+        mint::authority = pool_authority,
+        mint::freeze_authority = pool_authority,
+        extensions::metadata_pointer::authority = pool_authority,
+        extensions::metadata_pointer::metadata_address = gaiacoin,
+        extensions::group_member_pointer::authority = pool_authority,
+        extensions::group_member_pointer::member_address = gaiacoin,
+        extensions::transfer_hook::authority = pool_authority,
+        extensions::transfer_hook::program_id = crate::ID,
+        extensions::close_authority::authority = pool_authority,
+        extensions::permanent_delegate::delegate = pool_authority,
+    )]
+    pub mint_liquidity_pool: Box<InterfaceAccount<'info, Mint>>,
+
+    // the pool authority
+    /// CHECK: Read only authority
     #[account(
         seeds = [
-            AMM_SEED,
+            POOL_AUTHORITY_SEED.as_ref(),
         ],
         bump,
     )]
-    pub amm: Account<'info, Amm>,
-
-    #[account(
-        init,
-        signer,
-        payer = payer,
-        mint::token_program = token_program,
-        mint::decimals = 6,
-        mint::authority = authority,
-        mint::freeze_authority = authority,
-        extensions::metadata_pointer::authority = authority,
-        extensions::metadata_pointer::metadata_address = mint_a,
-        extensions::group_member_pointer::authority = authority,
-        extensions::group_member_pointer::member_address = mint_a,
-        extensions::transfer_hook::authority = authority,
-        extensions::transfer_hook::program_id = crate::ID,
-        extensions::close_authority::authority = authority,
-        extensions::permanent_delegate::delegate = authority,
-    )]
-    pub mint_a: Box<InterfaceAccount<'info, Mint>>,
-    #[account(
-        init,
-        signer,
-        payer = payer,
-        mint::token_program = token_program,
-        mint::decimals = 6,
-        mint::authority = authority,
-        mint::freeze_authority = authority,
-        extensions::metadata_pointer::authority = authority,
-        extensions::metadata_pointer::metadata_address = mint_b,
-        extensions::group_member_pointer::authority = authority,
-        extensions::group_member_pointer::member_address = mint_b,
-        extensions::transfer_hook::authority = authority,
-        extensions::transfer_hook::program_id = crate::ID,
-        extensions::close_authority::authority = authority,
-        extensions::permanent_delegate::delegate = authority,
-    )]
-    pub mint_b: Box<InterfaceAccount<'info, Mint>>,
-    #[account(
-        init,
-        payer = payer,
-        associated_token::token_program = token_program,
-        associated_token::mint = mint_a,
-        associated_token::authority = pool,
-    )]
-    pub mint_token_account_a: Box<InterfaceAccount<'info, TokenAccount>>,
-    #[account(
-        init,
-        payer = payer,
-        associated_token::token_program = token_program,
-        associated_token::mint = mint_b,
-        associated_token::authority = pool,
-    )]
-    pub mint_token_account_b: Box<InterfaceAccount<'info, TokenAccount>>,
+    pub pool_authority: AccountInfo<'info>,
 
 
 
-    /// CHECK: This account's data is a buffer of TLV data
-    #[account(
-        init,
-        space = get_meta_list_size(None),
-        seeds = [META_LIST_ACCOUNT_SEED, mint_a.key().as_ref()],
-        bump,
-        payer = payer,
-    )]
-    pub extra_metas_account_a: UncheckedAccount<'info>,
-        /// CHECK: This account's data is a buffer of TLV data
-        #[account(
-            init,
-            space = get_meta_list_size(None),
-            seeds = [META_LIST_ACCOUNT_SEED, mint_b.key().as_ref()],
-            bump,
-            payer = payer,
-        )]
-        pub extra_metas_account_b: UncheckedAccount<'info>,
 
-    pub system_program: Program<'info, System>,
-    pub associated_token_program: Program<'info, AssociatedToken>,
+
+    #[account(mut)]
+    pub payer: Signer<'info>,
     pub token_program: Program<'info, Token2022>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub system_program: Program<'info, System>,
 }
 
 
-impl<'info> CreateMintAccount<'info> {
-    fn initialize_token_metadata(
+impl<'info> Initialize<'info> {
+
+    // create the SST Struct, and fill it with a default value of 21 degrees
+    pub fn create_sst(
+        &mut self
+    ) -> Result<()> {
+        let sst = &mut self.sst;
+        if sst.created == true {
+
+            return Err(SstError::AlreadyInitialized.into());
+        
+        } else {
+        
+            sst.temperature = 21.000;
+            sst.created = true;
+        
+        }
+        
+        Ok(())
+
+    }
+
+    pub fn create_amm(
+        &mut self, 
+        id: Pubkey, 
+        fee: u16
+    ) -> Result<()> {
+        if self.amm.created == true {
+            
+            msg!("AMM Is Locked, Cannot Create");
+
+            return Err(AmmError::AlreadyCreated.into());
+        
+        } else {
+
+            // set inner values of amm
+            self.amm.set_inner(
+                Amm {
+                    id,
+                    admin: self.admin.key(),
+                    fee,
+                    created: true
+                }
+            );
+            
+            msg!("AMM Created, setting State to True");
+        
+            Ok(())
+        
+        }
+    }
+
+    pub fn initialize_token_metadata(
         &mut self,
         token: bool,
     ) -> ProgramResult {
@@ -150,12 +292,12 @@ impl<'info> CreateMintAccount<'info> {
                 uri = "https://arweave.net/K-3ZVae8bb_iMFLTZKuO_7CMNLtOc-bmMafhhn_PeF0";
             
             // Set mint to pool
-            self.pool.mint_a = self.mint_a.key();
+            self.pool.mint_a = self.endcoin.key();
 
             let cpi_accounts = TokenMetadataInitialize {
                 token_program_id: self.token_program.to_account_info(),
-                mint: self.mint_a.to_account_info(),
-                metadata: self.mint_a.to_account_info(), // metadata account is the mint, since data is stored in mint
+                mint: self.endcoin.to_account_info(),
+                metadata: self.endcoin.to_account_info(), // metadata account is the mint, since data is stored in mint
                 mint_authority: self.authority.to_account_info(),
                 update_authority: self.authority.to_account_info(),
             };
@@ -169,12 +311,12 @@ impl<'info> CreateMintAccount<'info> {
                 uri = "https://arweave.net/aFr3D_1_O4F2cDpE9r_OGP5o6D2OyZgDzlLmBEdUYos";
                 
                 // Set mint to pool
-                self.pool.mint_b = self.mint_b.key();
+                self.pool.mint_b = self.gaiacoin.key();
 
                 let cpi_accounts = TokenMetadataInitialize {
                     token_program_id: self.token_program.to_account_info(),
-                    mint: self.mint_b.to_account_info(),
-                    metadata: self.mint_b.to_account_info(), // metadata account is the mint, since data is stored in mint
+                    mint: self.gaiacoin.to_account_info(),
+                    metadata: self.gaiacoin.to_account_info(), // metadata account is the mint, since data is stored in mint
                     mint_authority: self.authority.to_account_info(),
                     update_authority: self.authority.to_account_info(),
                 };
@@ -187,9 +329,70 @@ impl<'info> CreateMintAccount<'info> {
     
         Ok(())
     }
+
+    pub fn create_pool(
+        &mut self,
+        bumps: InitializeBumps
+    ) -> Result<()> {
+
+        let initial_amount: u64 = 6920508;
+        
+        let seeds = &[
+            AUTHORITY_SEED,
+            &[bumps.authority]
+        ];
+
+        let signer_seeds = &[&seeds[..]];
+
+
+        let _ = mint_to(
+            CpiContext::new_with_signer(
+                self.token_program.to_account_info(), 
+                MintTo
+                {
+                    mint: self.endcoin.to_account_info(),
+                    to: self.pool_account_a.to_account_info(),
+                    authority: self.authority.to_account_info(),
+                } ,
+                signer_seeds
+            ),
+            initial_amount
+        );
+
+        let _ = mint_to(
+            CpiContext::new_with_signer(
+                self.token_program.to_account_info(), 
+                MintTo
+                {
+                    mint: self.gaiacoin.to_account_info(),
+                    to: self.pool_account_b.to_account_info(),
+                    authority: self.authority.to_account_info(),
+                } ,
+                signer_seeds
+            ),
+            initial_amount
+        );
+        
+
+
+        let pool = &mut self.pool;
+        pool.amm = self.amm.key();
+        pool.mint_a = self.endcoin.key();
+        pool.mint_b = self.gaiacoin.key();
+
+        Ok(())
+
+        // mint and deposit liquidity to the depositor/initializor ATA then sent to the pool. 
+
+
+    }
+
+
+
 }
 
-pub fn handler(ctx: Context<CreateMintAccount>, args: CreateMintAccountArgs) -> Result<()> {
+pub fn handler(ctx: Context<Initialize>, args: InitializeArgs) -> Result<()> {
+    
     ctx.accounts.initialize_token_metadata(
         args.token
     )?;
@@ -197,17 +400,17 @@ pub fn handler(ctx: Context<CreateMintAccount>, args: CreateMintAccountArgs) -> 
     // variable to hold whichever mint
     let token_mint;
     // mint A
-    let mint_a = &mut ctx.accounts.mint_a;
+    let endcoin = &mut ctx.accounts.endcoin;
     // mint B
-    let mint_b = &mut ctx.accounts.mint_b;
+    let gaiacoin = &mut ctx.accounts.gaiacoin;
 
     // select which mint to use
     match args.token {
         false => {
-            token_mint = mint_a;
+            token_mint = endcoin;
         }
         true => {
-            token_mint = mint_b;
+            token_mint = gaiacoin;
         }
     }
 
@@ -263,6 +466,14 @@ pub fn handler(ctx: Context<CreateMintAccount>, args: CreateMintAccountArgs) -> 
 
     Ok(())
 }
+
+
+
+
+
+
+
+
 
 #[derive(Accounts)]
 #[instruction()]
