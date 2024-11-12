@@ -39,7 +39,7 @@ pub struct Initialize<'info> {
             SST_SEED,
         ],
         bump
-    )] pub sst: Account<'info, SST>,
+    )] pub sst: Box<Account<'info, SST>>,
 
     // The AMM account
     #[account(
@@ -52,7 +52,7 @@ pub struct Initialize<'info> {
         bump,
         constraint = fee < 10000 @ AmmError::InvalidFee,
     )]
-    pub amm: Account<'info, Amm>,
+    pub amm: Box<Account<'info, Amm>>,
 
     /// The admin of the AMM
     /// CHECK: Read only, delegatable creation
@@ -75,6 +75,7 @@ pub struct Initialize<'info> {
         extensions::transfer_hook::program_id = crate::ID,
         extensions::close_authority::authority = authority,
         extensions::permanent_delegate::delegate = authority,
+        
     )]
     pub endcoin: Box<InterfaceAccount<'info, Mint>>,
 
@@ -97,26 +98,6 @@ pub struct Initialize<'info> {
         extensions::permanent_delegate::delegate = authority,
     )]
     pub gaiacoin: Box<InterfaceAccount<'info, Mint>>,
-
-    // Endcoin Mint Token Account
-    #[account(
-        init,
-        payer = payer,
-        associated_token::token_program = token_program,
-        associated_token::mint = endcoin,
-        associated_token::authority = pool,
-    )]
-    pub endcoin_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
-
-    // Gaiacoin Mint Token Account
-    #[account(
-        init,
-        payer = payer,
-        associated_token::token_program = token_program,
-        associated_token::mint = gaiacoin,
-        associated_token::authority = pool,
-    )]
-    pub gaiacoin_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
 
     // extra metas account
     /// CHECK: This account's data is a buffer of TLV data
@@ -160,7 +141,7 @@ pub struct Initialize<'info> {
         ],
         bump,
     )]
-    pub pool: Account<'info, Pool>,
+    pub pool: Box<Account<'info, Pool>>,
 
     // pool endcoin mint ATA
     #[account(
@@ -168,7 +149,7 @@ pub struct Initialize<'info> {
         payer = payer,
         associated_token::mint = endcoin,
         associated_token::token_program = token_program,
-        associated_token::authority = pool_authority,
+        associated_token::authority = pool,
     )]
     pub pool_account_a: Box<InterfaceAccount<'info, TokenAccount>>,
 
@@ -178,7 +159,7 @@ pub struct Initialize<'info> {
         payer = payer,
         associated_token::mint = gaiacoin,
         associated_token::token_program = token_program,
-        associated_token::authority = pool_authority,
+        associated_token::authority = pool,
     )]
     pub pool_account_b: Box<InterfaceAccount<'info, TokenAccount>>,
 
@@ -211,11 +192,7 @@ pub struct Initialize<'info> {
         bump,
     )]
     pub pool_authority: AccountInfo<'info>,
-
-
-
-
-
+    
     #[account(mut)]
     pub payer: Signer<'info>,
     pub token_program: Program<'info, Token2022>,

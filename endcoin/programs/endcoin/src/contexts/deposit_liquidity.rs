@@ -165,7 +165,7 @@ let _ = mint_to(
 pub struct DepositLiquidity<'info> {
     #[account(
         seeds = [
-            pool.amm.as_ref(),
+            //pool.amm.as_ref(),
             pool.mint_a.key().as_ref(),
             pool.mint_b.key().as_ref(),
         ],

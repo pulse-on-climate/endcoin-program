@@ -9,63 +9,46 @@ mod constants;
 pub use contexts::*;
 pub mod contexts;
 
-declare_id!("endpQEoonAdTFZAJCU9kEtx2Kdj4fA2bqvwVeuizF2e");
+declare_id!("3fVWRMNHVjxZgwsgioTBVbLpAx1jxUu4xMoDoQZZbVUK");
 
 #[program]
 pub mod endcoin {
     use super::*;
-    
 
-    pub fn initialize(ctx: Context<Initialize>, id: Pubkey, fee: u16, args: bool) -> Result<()> {
-
-        // create SST
-        ctx.accounts.create_sst()?;
-        // create AMM
+    pub fn create_amm(ctx: Context<CreateAmm>, id: Pubkey, fee: u16) -> Result<()> {
         ctx.accounts.create_amm(id, fee)?;
-        // create token metadata
-        ctx.accounts.initialize_token_metadata(args)?;
-        ctx.accounts.initialize_token_metadata(!args)?;
-        // create pool account
-        ctx.accounts.create_pool(ctx.bumps)?;
-
         Ok(())
     }
 
-    // pub fn create_amm(ctx: Context<CreateAmm>, id: Pubkey, fee: u16) -> Result<()> {
-    //     ctx.accounts.create_amm(id, fee)?;
-    //     Ok(())
-    // }
-    // pub fn create_sst(ctx: Context<CreateSST>) -> Result<()> {
-    //     ctx.accounts.create_sst()?;
-    //     Ok(())
-    // }
-    // pub fn create_pool(ctx: Context<CreatePool>) -> Result<()> {
-    //     ctx.accounts.create_pool(ctx.bumps)?;
-    //     Ok(())
-    // }
-    pub fn create_mint_account(
-        ctx: Context<Initialize>,
-        args: InitializeArgs,
-    ) -> Result<()> {
-        instructions::handler(ctx, args)
+    pub fn create_sst(ctx: Context<CreateSST>) -> Result<()> {
+        ctx.accounts.create_sst()?;
+        Ok(())
     }
-    // pub fn create_metadata(ctx: Context<CreateMetadata>, token: u8) -> Result<()>
-    // {
-    //     ctx.accounts.create_metadata(token, ctx.bumps)?;
-    //     Ok(())
-    // }
 
-    // pub fn read_feed(ctx: Context<Switchboard>, params: ReadFeedParams) -> Result<()> {
-    //     ctx.accounts.read_feed(params)?;
-    //     Ok(())
-    // }
+    pub fn create_pool(
+        ctx: Context<CreatePool>
+    ) -> Result<()> {
+        ctx.accounts.create_pool()?;
+        Ok(())
+    }
+    pub fn initial_pool_mint(
+        ctx: Context<InitialPoolMint>
+    ) -> Result<()> {
+        ctx.accounts.initial_pool_mint(ctx.bumps)?;
+        Ok(())
+    }
+    
+    pub fn create_mints(ctx: Context<CreateMints>, token: bool) -> Result<()>
+    {
+        handler(ctx, token)?;
+        Ok(())
+    }
 
     pub fn deposit_liquidity(
         ctx: Context<DepositLiquidity>, mean_temp: f64
     ) -> Result<()> {
         ctx.accounts.deposit_liquidity(&ctx.bumps, mean_temp)
     }
-
     
     pub fn swap_exact_tokens_for_tokens(
         ctx: Context<SwapExactTokensForTokens>,
@@ -75,6 +58,12 @@ pub mod endcoin {
     ) -> Result<()> {
         ctx.accounts.swap_exact_tokens_for_tokens(swap_a, input_amount, &ctx.bumps)
     }
+
+
+    // pub fn read_feed(ctx: Context<Switchboard>, params: ReadFeedParams) -> Result<()> {
+    //     ctx.accounts.read_feed(params)?;
+    //     Ok(())
+    // }
 
 
     // pub fn create_mint_account(

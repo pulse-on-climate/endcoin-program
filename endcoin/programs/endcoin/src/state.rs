@@ -27,11 +27,9 @@ impl SST {
     pub const LEN: usize = 8 + 8 + 1;
 }
 
-#[account]
+#[account()]
 #[derive(Default)]
 pub struct Pool {
-    /// Primary key of the AMM
-    pub amm: Pubkey,
     /// Mint of token A - Endcoin
     pub mint_a: Pubkey,
     /// Mint of token B - Gaiacoin

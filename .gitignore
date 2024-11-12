@@ -10,3 +10,4 @@ endcoin/deployment/keys/wba-wallet.json
 .venv
 avhrr
 clients
+endcoin-keypair.json

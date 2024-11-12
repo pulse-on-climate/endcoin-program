@@ -15,7 +15,7 @@ pub struct CreateAmm<'info> {
         bump,
         constraint = fee < 10000 @ AmmError::InvalidFee,
     )]
-    pub amm: Account<'info, Amm>,
+    pub amm: Box<Account<'info, Amm>>,
 
     /// The admin of the AMM
     /// CHECK: Read only, delegatable creation
@@ -24,7 +24,6 @@ pub struct CreateAmm<'info> {
     // The account paying for all rents
     #[account(mut)]
     pub payer: Signer<'info>,
-
     // Solana ecosystem accounts
     pub system_program: Program<'info, System>,
 }
@@ -35,12 +34,14 @@ impl<'info> CreateAmm<'info> {
         id: Pubkey, 
         fee: u16
     ) -> Result<()> {
-// We will implement this later
-// 
-// if self.amm.created == true {
-//     msg!("AMM Is Locked, Cannot Create");
-//     return Err(AmmError::Locked.into());
-// } else {
+
+        if self.amm.created == true {
+            
+            msg!("AMM Is Locked, Cannot Create");
+
+            return Err(AmmError::AlreadyCreated.into());
+        
+        } else {
 
             // set inner values of amm
             self.amm.set_inner(
@@ -49,9 +50,13 @@ impl<'info> CreateAmm<'info> {
                     admin: self.admin.key(),
                     fee,
                     created: true
-                });
+                }
+            );
+            
             msg!("AMM Created, setting State to True");
         
             Ok(())
+        
         }
     }
+}
