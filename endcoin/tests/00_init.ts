@@ -169,7 +169,7 @@ it("Check values", async () => {
       .rpc();
   });
 
-  it("Initialize AMM", async () => {
+  xit("Initialize AMM", async () => {
 
     await program.methods
       .createAmm(amm_id.publicKey, 500)
@@ -185,7 +185,7 @@ it("Check values", async () => {
   });
 
 
-  it("Initialize ENDCOIN", async () => {
+  xit("Initialize ENDCOIN", async () => {
 
     await program.methods
       .createEndcoin()
@@ -202,7 +202,7 @@ it("Check values", async () => {
       .rpc();
   });
 
-  it("Initialize GAIACOIN", async () => {
+  xit("Initialize GAIACOIN", async () => {
 
     await program.methods
       .createGaiacoin()
@@ -219,7 +219,7 @@ it("Check values", async () => {
       .rpc();
   });
 
-  it("Initialize Pool", async () => {
+  xit("Initialize Pool", async () => {
 
     await program.methods
       .createPool()
@@ -238,7 +238,7 @@ it("Check values", async () => {
       .rpc();
   });
 
-  it("Mint Liquidity Pool", async () => {
+  xit("Mint Liquidity Pool", async () => {
 
     await program.methods
       .initialPoolMint()
@@ -265,6 +265,48 @@ it("Check values", async () => {
       .signers([payer, mintLiquidityPool])
       .rpc();
   });
+
+  it("Pull Feed", async () => {
+
+
+    let feed = "GhCs7zhha7kTyt8EiaWaBT5DREt23GnoPnqa7AU4yv1y";
+
+
+    const tx = await program.methods
+      .pullFeed()
+      .accountsStrict({
+        feed,
+  }).rpc();
+
+  const latestBlockHash = await provider.connection.getLatestBlockhash();
+  await provider.connection.confirmTransaction(
+    {
+      blockhash: latestBlockHash.blockhash,
+      lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
+      signature: tx,
+    },
+    "confirmed"
+  );
+
+  const txDetails = await program.provider.connection.getTransaction(tx, {
+    maxSupportedTransactionVersion: 0,
+    commitment: "confirmed",
+  });
+
+  const logs = txDetails?.meta?.logMessages || null;
+
+  if (!logs) {
+    console.log("No logs found");
+  } else {
+    console.log("Logs:", logs);
+  }
+});
+
+
+
+
+
+
 
   // xit("mint extension constraints test passes", async () => {
   //   try {

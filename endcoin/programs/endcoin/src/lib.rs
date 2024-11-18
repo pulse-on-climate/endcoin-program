@@ -49,7 +49,7 @@ pub mod endcoin {
         ctx.accounts.initialize_gaiacoin()?;
         Ok(())
     }
-    
+
     pub fn deposit_liquidity(
         ctx: Context<DepositLiquidity>, mean_temp: f64
     ) -> Result<()> {
@@ -65,7 +65,10 @@ pub mod endcoin {
         ctx.accounts.swap_exact_tokens_for_tokens(swap_a, input_amount, &ctx.bumps)
     }
 
-
+    pub fn pull_feed(ctx: Context<PullFeed>) -> Result<()> {
+        ctx.accounts.pull_feed()?;
+        Ok(())
+    }
     // pub fn read_feed(ctx: Context<Switchboard>, params: ReadFeedParams) -> Result<()> {
     //     ctx.accounts.read_feed(params)?;
     //     Ok(())
