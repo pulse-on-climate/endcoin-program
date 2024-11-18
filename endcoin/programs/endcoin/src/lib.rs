@@ -69,11 +69,6 @@ pub mod endcoin {
         ctx.accounts.pull_feed()?;
         Ok(())
     }
-    // pub fn read_feed(ctx: Context<Switchboard>, params: ReadFeedParams) -> Result<()> {
-    //     ctx.accounts.read_feed(params)?;
-    //     Ok(())
-    // }
-
 
     // pub fn create_mint_account(
     //     ctx: Context<CreateMintAccount>,

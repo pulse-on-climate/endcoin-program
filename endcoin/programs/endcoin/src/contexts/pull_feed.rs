@@ -29,7 +29,7 @@ pub fn pull_feed(
         // Docs at: https://switchboard-on-demand-rust-docs.web.app/on_demand/accounts/pull_feed/struct.PullFeedAccountData.html
         let feed = PullFeedAccountData::parse(feed_account).unwrap();
         // Log the value
-        msg!("price: {:?}", feed.result.value());
+        msg!("SST: {:?}", feed.result.value());
         Ok(())
     }
 }
