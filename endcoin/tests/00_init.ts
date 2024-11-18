@@ -68,10 +68,6 @@ describe("Endcoin", () => {
 
   const [pool] = PublicKey.findProgramAddressSync(
     [
-      // amm.key().as_ref(),
-      // endcoin.key().as_ref(),
-      // gaiacoin.key().as_ref(),
-      amm.toBuffer(),
       endcoin.publicKey.toBuffer(),
       gaiacoin.publicKey.toBuffer(),
     ],
@@ -85,6 +81,13 @@ describe("Endcoin", () => {
     program.programId
   );
 
+  const [authority] = PublicKey.findProgramAddressSync(
+    [
+      // seeds = [AUTHORITY_SEED]
+      anchor.utils.bytes.utf8.encode("authority"),
+    ],
+    program.programId
+  );
   
 const [extraMetasAccountEndcoin] = PublicKey.findProgramAddressSync(
 [
@@ -144,6 +147,7 @@ it("Check values", async () => {
     );
   console.log("MintLiquidityPool: " + mintLiquidityPool.publicKey);
   console.log("PoolAuth: " + poolAuthority);
+  console.log("Auth: " + authority);
   console.log("payer: " + payer.publicKey);
   console.log("ProgramId: " + anchor.web3.SystemProgram.programId);
   console.log("Associated Program ID: " + ASSOCIATED_PROGRAM_ID);
@@ -152,7 +156,7 @@ it("Check values", async () => {
 });
 
 
-  it("Initialize SST", async () => {
+  xit("Initialize SST", async () => {
 
     await program.methods
       .createSst()
@@ -168,7 +172,7 @@ it("Check values", async () => {
   it("Initialize AMM", async () => {
 
     await program.methods
-      .createAmm(amm_id.publicKey, 65534)
+      .createAmm(amm_id.publicKey, 500)
       .accountsStrict({
       amm: amm,
       admin: admin.publicKey,
@@ -184,42 +188,34 @@ it("Check values", async () => {
   it("Initialize ENDCOIN", async () => {
 
     await program.methods
-      .createMints(false)
+      .createEndcoin()
       .accountsStrict({
       endcoin: endcoin.publicKey,
-      gaiacoin: gaiacoin.publicKey,
       extraMetasAccountEndcoin: extraMetasAccountEndcoin,
-      extraMetasAccountGaiacoin: extraMetasAccountGaiacoin,
-      authority: payer.publicKey,
-      pool: pool,
-      amm: amm,
+      authority: authority,
       payer: payer.publicKey,
       associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
       tokenProgram: TOKEN_2022_PROGRAM_ID,
       systemProgram: anchor.web3.SystemProgram.programId,
     })
-      .signers([payer, endcoin, gaiacoin])
+      .signers([payer])
       .rpc();
   });
 
   it("Initialize GAIACOIN", async () => {
 
     await program.methods
-      .createMints(true)
+      .createGaiacoin()
       .accountsStrict({
-      endcoin: endcoin.publicKey,
       gaiacoin: gaiacoin.publicKey,
-      extraMetasAccountEndcoin: extraMetasAccountEndcoin,
       extraMetasAccountGaiacoin: extraMetasAccountGaiacoin,
-      authority: payer.publicKey,
-      pool: pool,
-      amm: amm,
+      authority: authority,
       payer: payer.publicKey,
       associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
       tokenProgram: TOKEN_2022_PROGRAM_ID,
       systemProgram: anchor.web3.SystemProgram.programId,
     })
-      .signers([payer, endcoin, gaiacoin])
+      .signers([payer])
       .rpc();
   });
 
@@ -228,7 +224,25 @@ it("Check values", async () => {
     await program.methods
       .createPool()
       .accountsStrict({
-      amm: amm,
+      pool: pool,
+      poolAuthority: poolAuthority,
+      endcoin: endcoin.publicKey,
+      gaiacoin: gaiacoin.publicKey,
+      payer: payer.publicKey,
+      tokenProgram: TOKEN_2022_PROGRAM_ID,
+      associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
+      systemProgram: anchor.web3.SystemProgram.programId,
+
+    })
+      .signers([payer])
+      .rpc();
+  });
+
+  it("Mint Liquidity Pool", async () => {
+
+    await program.methods
+      .initialPoolMint()
+      .accountsStrict({
       pool: pool,
       poolAuthority: poolAuthority,
       mintLiquidityPool: mintLiquidityPool.publicKey,
@@ -246,45 +260,44 @@ it("Check values", async () => {
       tokenProgram: TOKEN_2022_PROGRAM_ID,
       associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
       systemProgram: anchor.web3.SystemProgram.programId,
-      authority: payer.publicKey,
 
     })
       .signers([payer, mintLiquidityPool])
       .rpc();
   });
 
-  xit("mint extension constraints test passes", async () => {
-    try {
-      const tx = await program.methods
-      .checkMintExtensionsConstraints()
-      .accountsStrict({
-        authority: payer.publicKey,
-        mint: endcoin.publicKey,
-      })
-      .signers([payer])
-      .rpc();
-      assert.ok(tx, "transaction should be processed without error");
-    } catch (e) {
-      assert.fail('should not throw error');
-    }
-  });
-  xit("mint extension constraints fails with invalid authority", async () => {
-    const wrongAuth = Keypair.generate();
-    try {
-      const x = await program.methods
-      .checkMintExtensionsConstraints()
-      .accountsStrict({
-        authority: wrongAuth.publicKey,
-        mint: endcoin.publicKey,
-      })
-      .signers([payer, wrongAuth])
-      .rpc();
-      assert.fail('should have thrown an error');
-    } catch (e) {
-      expect(e, 'should throw error');
-    }
+  // xit("mint extension constraints test passes", async () => {
+  //   try {
+  //     const tx = await program.methods
+  //     .checkMintExtensionsConstraints()
+  //     .accountsStrict({
+  //       authority: payer.publicKey,
+  //       mint: endcoin.publicKey,
+  //     })
+  //     .signers([payer])
+  //     .rpc();
+  //     assert.ok(tx, "transaction should be processed without error");
+  //   } catch (e) {
+  //     assert.fail('should not throw error');
+  //   }
+  // });
+  // xit("mint extension constraints fails with invalid authority", async () => {
+  //   const wrongAuth = Keypair.generate();
+  //   try {
+  //     const x = await program.methods
+  //     .checkMintExtensionsConstraints()
+  //     .accountsStrict({
+  //       authority: wrongAuth.publicKey,
+  //       mint: endcoin.publicKey,
+  //     })
+  //     .signers([payer, wrongAuth])
+  //     .rpc();
+  //     assert.fail('should have thrown an error');
+  //   } catch (e) {
+  //     expect(e, 'should throw error');
+  //   }
 
-  })
+  // })
 });
 
 

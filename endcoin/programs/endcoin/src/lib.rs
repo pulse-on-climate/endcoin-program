@@ -9,6 +9,7 @@ mod constants;
 pub use contexts::*;
 pub mod contexts;
 
+
 declare_id!("3fVWRMNHVjxZgwsgioTBVbLpAx1jxUu4xMoDoQZZbVUK");
 
 #[program]
@@ -38,12 +39,17 @@ pub mod endcoin {
         Ok(())
     }
     
-    pub fn create_mints(ctx: Context<CreateMints>, token: bool) -> Result<()>
+    pub fn create_endcoin(ctx: Context<CreateEndcoin>) -> Result<()>
     {
-        handler(ctx, token)?;
+        ctx.accounts.initialize_endcoin()?;
         Ok(())
     }
-
+    pub fn create_gaiacoin(ctx: Context<CreateGaiacoin>) -> Result<()>
+    {
+        ctx.accounts.initialize_gaiacoin()?;
+        Ok(())
+    }
+    
     pub fn deposit_liquidity(
         ctx: Context<DepositLiquidity>, mean_temp: f64
     ) -> Result<()> {
@@ -73,11 +79,11 @@ pub mod endcoin {
     //     instructions::handler(ctx, args)
     // }
 
-    pub fn check_mint_extensions_constraints(
-        _ctx: Context<CheckMintExtensionConstraints>,
-    ) -> Result<()> {
-        Ok(())
-    }
+    // pub fn check_mint_extensions_constraints(
+    //     _ctx: Context<CheckMintExtensionConstraints>,
+    // ) -> Result<()> {
+    //     Ok(())
+    // }
 
 
 
