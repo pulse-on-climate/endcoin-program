@@ -70,6 +70,11 @@ pub mod endcoin {
         Ok(())
     }
 
+    pub fn update_timestamp(ctx: Context<HelloState>) -> Result<()> {
+        ctx.accounts.update_timestamp()?;
+        Ok(())
+    }
+
     // pub fn create_mint_account(
     //     ctx: Context<CreateMintAccount>,
     //     args: CreateMintAccountArgs,
