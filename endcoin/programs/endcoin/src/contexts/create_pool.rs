@@ -11,21 +11,32 @@ use anchor_spl::{
 
 
 use crate::constants::POOL_AUTHORITY_SEED;
-use crate::state::Pool;
+use crate::state::{Amm,Pool};
+use crate::AmmError;
 
 
 #[derive(Accounts)]
 pub struct CreatePool<'info> {
+
+    #[account(
+    seeds = [    
+        amm.id.as_ref()
+    ],
+    bump
+    )]
+    pub amm: Box<Account<'info, Amm>>,
     // the pool account
     #[account(
         init,
         payer = payer,
         space = Pool::LEN,
         seeds = [
+            amm.key().as_ref(),
             endcoin.key().as_ref(),
             gaiacoin.key().as_ref(),
         ],
         bump,
+        constraint = endcoin.key() < gaiacoin.key() @ AmmError::InvalidMint
     )]
     pub pool: Box<Account<'info, Pool>>,
 
@@ -143,19 +154,19 @@ pub struct InitialPoolMint<'info> {
 
 // IMPL 
 impl<'info> CreatePool<'info> {
+
     pub fn create_pool(
         &mut self,
     ) -> Result<()> {
 
         let pool = &mut self.pool;
-        // pool.amm = self.amm.key();
+        pool.amm = self.amm.key();
         pool.mint_a = self.endcoin.key();
         pool.mint_b = self.gaiacoin.key();
 
         Ok(())
 
         // mint and deposit liquidity to the depositor/initializor ATA then sent to the pool. 
-
 
     }
 }
