@@ -9,7 +9,7 @@ pub struct Amm {
     pub admin: Pubkey,
     /// The LP fee taken on each trade, in basis points
     pub fee: u16,
-
+    // Created bool
     pub created: bool
 }
 impl Amm {
@@ -30,6 +30,9 @@ impl SST {
 #[account()]
 #[derive(Default)]
 pub struct Pool {
+    
+    // Primary key of the AMM
+    pub amm: Pubkey,
     /// Mint of token A - Endcoin
     pub mint_a: Pubkey,
     /// Mint of token B - Gaiacoin
