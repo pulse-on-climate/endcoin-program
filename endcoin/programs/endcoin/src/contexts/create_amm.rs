@@ -56,7 +56,7 @@ impl<'info> CreateAmm<'info> {
                 }
             );
             
-            msg!("AMM Created, setting State to True");
+            msg!("AMM Created, setting created state to True");
         
             Ok(())
         
