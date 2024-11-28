@@ -4,8 +4,7 @@ use std::str::FromStr;
 use switchboard_on_demand::on_demand::accounts::pull_feed::PullFeedAccountData;
 use anchor_lang::Accounts;
 use anchor_lang::prelude::{msg, Pubkey, Error, AccountInfo};
-
-
+use crate::FeedData;
 // Include the feed account
 #[derive(Accounts)]
 pub struct PullFeed<'info> {
@@ -27,7 +26,9 @@ pub fn pull_feed(
         // }
         
         // Docs at: https://switchboard-on-demand-rust-docs.web.app/on_demand/accounts/pull_feed/struct.PullFeedAccountData.html
-        let feed = PullFeedAccountData::parse(feed_account).unwrap();
+        // let feed = PullFeedAccountData::parse(feed_account).unwrap();
+
+        let feed = PullFeedAccountData::parse(feed_account).map_err(|_| Error::from(FeedData::InvalidFeedData))?;
         // Log the value
         msg!("SST: {:?}", feed.result.value());
         Ok(())

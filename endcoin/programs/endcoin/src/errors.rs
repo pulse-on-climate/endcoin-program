@@ -28,6 +28,12 @@ pub enum SstError {
 }
 
 #[error_code]
+pub enum FeedData {
+    #[msg("Invalid Feed Data")]
+    InvalidFeedData,
+}
+
+#[error_code]
 pub enum MetadataError {
     #[msg("Metadata Invalid")]
     InvalidMetadata,
