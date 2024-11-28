@@ -13,6 +13,7 @@ pub struct CreateSST<'info> {
         space = SST::LEN,
         seeds = [
             SST_SEED,
+            payer.key().as_ref()
         ],
         bump
     )] pub sst: Account<'info, SST>,
@@ -33,7 +34,7 @@ impl<'info> CreateSST<'info> {
         &mut self
     ) -> Result<()> {
         let sst = &mut self.sst;
-        if sst.created == true {
+        if sst.created {
 
             return Err(SstError::AlreadyInitialized.into());
         

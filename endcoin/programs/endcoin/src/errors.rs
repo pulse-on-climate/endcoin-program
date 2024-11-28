@@ -19,6 +19,8 @@ pub enum AmmError {
 
     #[msg("AMM Already Created")]
     AlreadyCreated,
+    #[msg("Unauthorized Admin account used.")]
+    UnauthorizedAdmin
 }
 
 #[error_code]

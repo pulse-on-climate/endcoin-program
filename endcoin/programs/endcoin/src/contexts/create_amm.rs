@@ -11,6 +11,7 @@ pub struct CreateAmm<'info> {
         space = Amm::LEN,
         seeds = [
             AMM_SEED,
+            admin.key().as_ref(),
         ],
         bump,
         constraint = fee < 10000 @ AmmError::InvalidFee,
@@ -18,8 +19,10 @@ pub struct CreateAmm<'info> {
     pub amm: Box<Account<'info, Amm>>,
 
     /// The admin of the AMM
-    /// CHECK: Read only, delegatable creation
-    pub admin: AccountInfo<'info>,
+    #[account(
+        constraint = admin.is_signer @ AmmError::UnauthorizedAdmin
+    )]
+    pub admin: Signer<'info>,
 
     // The account paying for all rents
     #[account(mut)]
@@ -35,7 +38,7 @@ impl<'info> CreateAmm<'info> {
         fee: u16
     ) -> Result<()> {
 
-        if self.amm.created == true {
+        if self.amm.created {
             
             msg!("AMM Is Locked, Cannot Create");
 
