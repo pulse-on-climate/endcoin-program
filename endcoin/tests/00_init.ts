@@ -55,6 +55,7 @@ describe("Endcoin", () => {
   const [sst] = PublicKey.findProgramAddressSync(
     [
       anchor.utils.bytes.utf8.encode("sea-surface-temperature"),
+      payer.publicKey.toBuffer(),
     ],
     program.programId
   );
@@ -62,6 +63,7 @@ describe("Endcoin", () => {
   const [amm] = PublicKey.findProgramAddressSync(
     [
       anchor.utils.bytes.utf8.encode("amm"),
+      admin.publicKey.toBuffer(),
     ],
     program.programId
   );
@@ -106,6 +108,13 @@ const [extraMetasAccountGaiacoin] = PublicKey.findProgramAddressSync(
 ],
 program.programId
 );
+
+const [programData] = PublicKey.findProgramAddressSync(
+  [program.programId.toBuffer()],
+  new PublicKey('BPFLoaderUpgradeab1e11111111111111111111111')
+);
+
+
 
   xit("airdrop payer", async () => {
     const tx = await provider.connection.requestAirdrop(payer.publicKey, 10000000000);
@@ -156,7 +165,7 @@ it("Check values", async () => {
 });
 
 
-  xit("Initialize SST", async () => {
+  it("Initialize SST", async () => {
 
     await program.methods
       .createSst()
@@ -169,100 +178,98 @@ it("Check values", async () => {
       .rpc();
   });
 
-  xit("Initialize AMM", async () => {
+  it("Initialize AMM", async () => {
 
     await program.methods
       .createAmm(amm_id.publicKey, 500)
       .accountsStrict({
-      amm: amm,
-      admin: admin.publicKey,
-      payer: payer.publicKey,
-      systemProgram: anchor.web3.SystemProgram.programId,
-
+        amm: amm,
+        admin: admin.publicKey,
+        program: program.programId,
+        programData: programData,  // You'll need to derive this
+        authority: payer.publicKey,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      
     })
-      .signers([payer])
+      .signers([payer, admin])
       .rpc();
   });
 
-
-  xit("Initialize ENDCOIN", async () => {
-
+// Add this before your test
+console.log("Extra Metas Account PDA:", extraMetasAccountEndcoin.toString());
+console.log("Error Address:", "9NbHfXPc7fMFoPdr6bnahZkykSTQ4T46s7YSjoSHtqy");
+  it("Initialize ENDCOIN", async () => {
+// Add this before your test
+console.log("Extra Metas Account PDA:", extraMetasAccountEndcoin.toString());
+console.log("Error Address:", "9NbHfXPc7fMFoPdr6bnahZkykSTQ4T46s7YSjoSHtqy");
     await program.methods
       .createEndcoin()
       .accountsStrict({
-      endcoin: endcoin.publicKey,
-      extraMetasAccountEndcoin: extraMetasAccountEndcoin,
+      mintA: endcoin.publicKey,
+      extraMetasAccountMintA: extraMetasAccountEndcoin,
       authority: authority,
       payer: payer.publicKey,
       associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
       tokenProgram: TOKEN_2022_PROGRAM_ID,
       systemProgram: anchor.web3.SystemProgram.programId,
     })
-      .signers([payer])
+      .signers([payer, endcoin])
+      .preInstructions([
+        // Add pre-instruction to create mint account
+        anchor.web3.SystemProgram.createAccount({
+          fromPubkey: payer.publicKey,
+          newAccountPubkey: endcoin.publicKey,
+          space: 82, // Minimum size for a Token2022 mint
+          lamports: await provider.connection.getMinimumBalanceForRentExemption(82),
+          programId: TOKEN_2022_PROGRAM_ID,
+        }),
+      ])
       .rpc();
   });
 
-  xit("Initialize GAIACOIN", async () => {
+  it("Initialize GAIACOIN", async () => {
 
     await program.methods
       .createGaiacoin()
       .accountsStrict({
-      gaiacoin: gaiacoin.publicKey,
-      extraMetasAccountGaiacoin: extraMetasAccountGaiacoin,
+      mintB: gaiacoin.publicKey,
+      extraMetasAccountMintB: extraMetasAccountGaiacoin,
       authority: authority,
       payer: payer.publicKey,
       associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
       tokenProgram: TOKEN_2022_PROGRAM_ID,
       systemProgram: anchor.web3.SystemProgram.programId,
     })
-      .signers([payer])
+      .signers([payer, gaiacoin])
+      .preInstructions([
+        // Add pre-instruction to create mint account
+        anchor.web3.SystemProgram.createAccount({
+          fromPubkey: payer.publicKey,
+          newAccountPubkey: gaiacoin.publicKey,
+          space: 82, // Minimum size for a Token2022 mint
+          lamports: await provider.connection.getMinimumBalanceForRentExemption(82),
+          programId: TOKEN_2022_PROGRAM_ID,
+        }),
+      ])
       .rpc();
   });
 
-  xit("Initialize Pool", async () => {
+  it("Initialize Pool", async () => {
 
     await program.methods
       .createPool()
       .accountsStrict({
-      pool: pool,
-      poolAuthority: poolAuthority,
-      endcoin: endcoin.publicKey,
-      gaiacoin: gaiacoin.publicKey,
-      payer: payer.publicKey,
-      tokenProgram: TOKEN_2022_PROGRAM_ID,
-      associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
-      systemProgram: anchor.web3.SystemProgram.programId,
-
+        pool: pool,
+        amm: amm,
+        poolAuthority: poolAuthority,
+        mintA: endcoin.publicKey,
+        mintB: gaiacoin.publicKey,
+        payer: payer.publicKey,
+        tokenProgram: TOKEN_2022_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
+        systemProgram: anchor.web3.SystemProgram.programId
     })
       .signers([payer])
-      .rpc();
-  });
-
-  xit("Mint Liquidity Pool", async () => {
-
-    await program.methods
-      .initialPoolMint()
-      .accountsStrict({
-      pool: pool,
-      poolAuthority: poolAuthority,
-      mintLiquidityPool: mintLiquidityPool.publicKey,
-      endcoin: endcoin.publicKey,
-      gaiacoin: gaiacoin.publicKey,
-      poolAccountA: associatedAddress({
-        mint: endcoin.publicKey,
-        owner: pool,
-      }),
-    poolAccountB: associatedAddress({
-        mint: gaiacoin.publicKey,
-        owner: pool,
-      }),
-      payer: payer.publicKey,
-      tokenProgram: TOKEN_2022_PROGRAM_ID,
-      associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
-      systemProgram: anchor.web3.SystemProgram.programId,
-
-    })
-      .signers([payer, mintLiquidityPool])
       .rpc();
   });
 
@@ -302,7 +309,60 @@ it("Check values", async () => {
   }
 });
 
+it("Deposit Liquidity", async () => {
+  let latestValue = 20.7;
 
+  const tx = await program.methods
+    .depositLiquidity(latestValue)
+    .accountsStrict({
+      pool: pool,
+      poolAuthority: poolAuthority,
+      payer: payer.publicKey,
+      mintLiquidity: mintLiquidityPool.publicKey,
+      mintA: endcoin.publicKey,
+      mintB: gaiacoin.publicKey,
+      mintAuthority: authority,
+      sst: sst,
+      poolAccountA: associatedAddress({
+        mint: endcoin.publicKey,
+        owner: poolAuthority,
+      }),
+      poolAccountB: associatedAddress({
+        mint: gaiacoin.publicKey,
+        owner: poolAuthority,
+      }),
+      depositorAccountLiquidity: associatedAddress({
+        mint: mintLiquidityPool.publicKey,
+        owner: authority,
+      }),
+      tokenProgram: TOKEN_2022_PROGRAM_ID,
+      associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
+      systemProgram: anchor.web3.SystemProgram.programId,
+}).rpc();
+
+const latestBlockHash = await provider.connection.getLatestBlockhash();
+await provider.connection.confirmTransaction(
+  {
+    blockhash: latestBlockHash.blockhash,
+    lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
+    signature: tx,
+  },
+  "confirmed"
+);
+
+const txDetails = await program.provider.connection.getTransaction(tx, {
+  maxSupportedTransactionVersion: 0,
+  commitment: "confirmed",
+});
+
+const logs = txDetails?.meta?.logMessages || null;
+
+if (!logs) {
+  console.log("No logs found");
+} else {
+  console.log("Logs:", logs);
+}
+});
 
 
 
