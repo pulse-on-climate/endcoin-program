@@ -17,6 +17,8 @@ pub mod endcoin {
     use super::*;
 
     pub fn create_amm(ctx: Context<CreateAmm>, id: Pubkey, fee: u16) -> Result<()> {
+        // Validate fee is within acceptable range (0-100%)
+        require!(fee <= 10000, AmmError::InvalidFee); // 10000 = 100.00%
         ctx.accounts.create_amm(id, fee)?;
         Ok(())
     }
