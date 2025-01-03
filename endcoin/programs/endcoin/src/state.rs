@@ -9,8 +9,9 @@ pub struct Amm {
     pub admin: Pubkey,
     /// The LP fee taken on each trade, in basis points
     pub fee: u16,
-    // Created bool
-    pub created: bool
+
+    pub created: bool,
+
 }
 impl Amm {
     pub const LEN: usize = 8 + 32 + 32 + 2 + 1;
@@ -40,5 +41,5 @@ pub struct Pool {
 
 }
 impl Pool {
-    pub const LEN: usize = 8 + 32*3;
+    pub const LEN: usize = 8 + 32 + 32 + 32;
 }
