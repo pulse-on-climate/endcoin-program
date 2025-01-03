@@ -34,27 +34,27 @@ pub struct CreateEndcoin<'info> {
     mint::authority = authority,
     // mint::freeze_authority = authority,
     // extensions::metadata_pointer::authority = authority,
-    // extensions::metadata_pointer::metadata_address = endcoin,
+    // extensions::metadata_pointer::metadata_address = mint_a,
     // extensions::group_member_pointer::authority = authority,
-    // extensions::group_member_pointer::member_address = endcoin,
+    // extensions::group_member_pointer::member_address = mint_a,
     // extensions::transfer_hook::authority = authority,
     // extensions::transfer_hook::program_id = crate::ID,
     // extensions::close_authority::authority = authority,
     // extensions::permanent_delegate::delegate = authority,
     
 )]
-pub endcoin: Box<InterfaceAccount<'info, Mint>>,
+pub mint_a: Box<InterfaceAccount<'info, Mint>>,
 
 // extra metas account
 /// CHECK: This account's data is a buffer of TLV data
 #[account(
     init,
     space = get_meta_list_size(None),
-    seeds = [META_LIST_ACCOUNT_SEED, endcoin.key().as_ref()],
+    seeds = [META_LIST_ACCOUNT_SEED, mint_a.key().as_ref()],
     bump,
     payer = payer,
 )]
-pub extra_metas_account_endcoin: UncheckedAccount<'info>,
+pub extra_metas_account_mint_a: UncheckedAccount<'info>,
 
 // Mint Authority
 /// CHECK: Read only authority
@@ -86,25 +86,25 @@ pub struct CreateGaiacoin<'info> {
     mint::authority = authority,
     // mint::freeze_authority = authority,
     // extensions::metadata_pointer::authority = authority,
-    // extensions::metadata_pointer::metadata_address = gaiacoin,
+    // extensions::metadata_pointer::metadata_address = mint_b,
     // extensions::group_member_pointer::authority = authority,
-    // extensions::group_member_pointer::member_address = gaiacoin,
+    // extensions::group_member_pointer::member_address = mint_b,
     // extensions::transfer_hook::authority = authority,
     // extensions::transfer_hook::program_id = crate::ID,
     // extensions::close_authority::authority = authority,
     // extensions::permanent_delegate::delegate = authority,
 )]
-pub gaiacoin: Box<InterfaceAccount<'info, Mint>>,
+pub mint_b: Box<InterfaceAccount<'info, Mint>>,
 
 /// CHECK: This account's data is a buffer of TLV data
 #[account(
     init,
     space = get_meta_list_size(None),
-    seeds = [META_LIST_ACCOUNT_SEED, gaiacoin.key().as_ref()],
+    seeds = [META_LIST_ACCOUNT_SEED, mint_b.key().as_ref()],
     bump,
     payer = payer,
 )]
-pub extra_metas_account_gaiacoin: UncheckedAccount<'info>,
+pub extra_metas_account_mint_b: UncheckedAccount<'info>,
 
 // Mint Authority
 /// CHECK: Read only authority
@@ -140,8 +140,8 @@ impl<'info> CreateEndcoin<'info> {
             
             let cpi_accounts = TokenMetadataInitialize {
                 token_program_id: self.token_program.to_account_info(),
-                mint: self.endcoin.to_account_info(),
-                metadata: self.endcoin.to_account_info(), // metadata account is the mint, since data is stored in mint
+                mint: self.mint_a.to_account_info(),
+                metadata: self.mint_a.to_account_info(), // metadata account is the mint, since data is stored in mint
                 mint_authority: self.authority.to_account_info(),
                 update_authority: self.authority.to_account_info(),
             };
@@ -171,8 +171,8 @@ impl<'info> CreateEndcoin<'info> {
             
             let cpi_accounts = TokenMetadataInitialize {
                 token_program_id: self.token_program.to_account_info(),
-                mint: self.gaiacoin.to_account_info(),
-                metadata: self.gaiacoin.to_account_info(), // metadata account is the mint, since data is stored in mint
+                mint: self.mint_b.to_account_info(),
+                metadata: self.mint_b.to_account_info(), // metadata account is the mint, since data is stored in mint
                 mint_authority: self.authority.to_account_info(),
                 update_authority: self.authority.to_account_info(),
             };
@@ -247,30 +247,4 @@ impl<'info> CreateEndcoin<'info> {
 //     )?;
 
 //     Ok(())
-// }
-
-
-
-
-
-
-
-
-// #[derive(Accounts)]
-// #[instruction()]
-// pub struct CheckMintExtensionConstraints<'info> {
-//     #[account(mut)]
-//     /// CHECK: can be any account
-//     pub authority: Signer<'info>,
-//     #[account(
-//         extensions::metadata_pointer::authority = authority,
-//         extensions::metadata_pointer::metadata_address = mint,
-//         extensions::group_member_pointer::authority = authority,
-//         extensions::group_member_pointer::member_address = mint,
-//         extensions::transfer_hook::authority = authority,
-//         extensions::transfer_hook::program_id = crate::ID,
-//         extensions::close_authority::authority = authority,
-//         extensions::permanent_delegate::delegate = authority,
-//     )]
-//     pub mint: Box<InterfaceAccount<'info, Mint>>,
 // }
