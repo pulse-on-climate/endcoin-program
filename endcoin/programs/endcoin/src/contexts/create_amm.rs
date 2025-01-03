@@ -14,7 +14,7 @@ pub struct CreateAmm<'info> {
             admin.key().as_ref(),
         ],
         bump,
-        constraint = fee < 10000 @ AmmError::InvalidFee,
+        constraint = fee >= 5 && fee < 10000 @ AmmError::InvalidFee,
     )]
     pub amm: Box<Account<'info, Amm>>,
 
