@@ -32,12 +32,6 @@ pub mod endcoin {
         ctx.accounts.create_pool()?;
         Ok(())
     }
-    pub fn initial_pool_mint(
-        ctx: Context<InitialPoolMint>
-    ) -> Result<()> {
-        ctx.accounts.initial_pool_mint(ctx.bumps)?;
-        Ok(())
-    }
     
     pub fn create_endcoin(ctx: Context<CreateEndcoin>) -> Result<()>
     {
