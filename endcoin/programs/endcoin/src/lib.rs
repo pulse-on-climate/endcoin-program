@@ -10,7 +10,7 @@ pub use contexts::*;
 pub mod contexts;
 
 
-declare_id!("H4Yiz3R9qdh5JHdpwwLaGBqejjJ4Y7v6FgUvtsRNZczW");
+declare_id!("ENDgsTHhw9x8c3d49HQe5QuvzQPbL9BCHGs5fd9vgphp");
 
 #[program]
 pub mod endcoin {

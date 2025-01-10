@@ -1,6 +1,5 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
-import { PublicKey, Keypair, SendTransactionError } from "@solana/web3.js";
 import { Endcoin } from "../target/types/endcoin";
 import { ASSOCIATED_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
 import { assert, expect } from "chai";
@@ -12,11 +11,28 @@ import ENDCOIN_KEY from "/Users/andrew/endcoin-wallet/endcoin.json";
 import GAIACOIN_KEY from "/Users/andrew/endcoin-wallet/gaiacoin.json";
 import MINTLP_KEY from "/Users/andrew/endcoin-wallet/mintLP.json";
 
+import {
+  closeAccount,
+  createInitializeMintInstruction,
+  createInitializeMintCloseAuthorityInstruction,
+  getMintLen,
+  ExtensionType,
+  TOKEN_2022_PROGRAM_ID,
+} from '@solana/spl-token';
+import {
+  PublicKey, 
+  clusterApiUrl,
+  sendAndConfirmTransaction,
+  Connection,
+  Keypair,
+  SystemProgram,
+  Transaction,
+  LAMPORTS_PER_SOL,
+} from '@solana/web3.js';
 
-
-const TOKEN_2022_PROGRAM_ID = new anchor.web3.PublicKey(
-  "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
-);
+// const TOKEN_2022_PROGRAM_ID = new anchor.web3.PublicKey(
+//   "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+// );
 
 
 // associated token addresses
@@ -33,25 +49,89 @@ export function associatedAddress({
   )[0];
 }
 
+
+
+  // create a token 2022 mint
+  async function createMint(payer: anchor.web3.Keypair, mint: anchor.web3.Keypair): Promise<anchor.web3.Keypair> {
+
+    const mintAuthority = Keypair.generate();
+    const freezeAuthority = Keypair.generate();
+    const closeAuthority = Keypair.generate();
+
+    const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
+
+    const extensions = [ExtensionType.MintCloseAuthority];
+    const mintLen = getMintLen(extensions);
+    const lamports = await connection.getMinimumBalanceForRentExemption(mintLen);
+
+    const transaction = new Transaction().add(
+      SystemProgram.createAccount({
+        fromPubkey: payer.publicKey,
+        newAccountPubkey: mint.publicKey,
+        space: mintLen,
+        lamports,
+        programId: TOKEN_2022_PROGRAM_ID,
+      }),
+      createInitializeMintCloseAuthorityInstruction(mint.publicKey, closeAuthority.publicKey, TOKEN_2022_PROGRAM_ID),
+      createInitializeMintInstruction(
+        mint.publicKey,
+        6,
+        mintAuthority.publicKey,
+        freezeAuthority.publicKey,
+        TOKEN_2022_PROGRAM_ID
+      )
+    );
+    await sendAndConfirmTransaction(connection, transaction, [payer, mint], undefined);
+
+    return mint;
+  }
+
+
+  const payer = Keypair.fromSecretKey(Uint8Array.from(PAYER_KEY));
+
+
+
+
+      // Usage
+      let endcoin = Keypair.generate();
+      let gaiacoin = Keypair.generate();
+
 describe("Endcoin", () => {
+  
+  it("Create endcoin", async () => {
+
+          endcoin = await createMint(payer, endcoin);
+          console.log("Endcoin mint created:", endcoin.publicKey.toBase58());
+  
+  });
+  it("Create gaiacoin mint", async () => {
+
+    gaiacoin = await createMint(payer, gaiacoin);
+    console.log("Gaiacoin mint created:", gaiacoin.publicKey.toBase58());
+  
+  });
 
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
 
   const program = anchor.workspace.Endcoin as Program<Endcoin>;
-
-  const payer = Keypair.fromSecretKey(Uint8Array.from(PAYER_KEY));
   
-  const amm_id = Keypair.fromSecretKey(Uint8Array.from(AMM_ID_KEY));
+  const amm_id = Keypair.generate();
 
   const admin = Keypair.fromSecretKey(Uint8Array.from(ADMIN_KEY));
   
-  const endcoin = Keypair.fromSecretKey(Uint8Array.from(ENDCOIN_KEY));
+  // const endcoin = Keypair.fromSecretKey(Uint8Array.from(ENDCOIN_KEY));
   
-  const gaiacoin = Keypair.fromSecretKey(Uint8Array.from(GAIACOIN_KEY));
+  // const gaiacoin = Keypair.fromSecretKey(Uint8Array.from(GAIACOIN_KEY));
   
-  const mintLiquidityPool = Keypair.fromSecretKey(Uint8Array.from(MINTLP_KEY));
+  // const endcoin = new PublicKey("9kY89Y73KueHwfVq3hAVHsJyVpstDPCjRa7eaUpmijYq");
   
+  // const gaiacoin = new PublicKey("7j2kHSxEhvvHjNVjNcrp8epS6sZ1UdcDpRrDrWt2YZbq");
+  
+  //const mintLiquidityPool = Keypair.fromSecretKey(Uint8Array.from(MINTLP_KEY));
+  
+  const mintLiquidityPool = Keypair.generate();
+
   const [sst] = PublicKey.findProgramAddressSync(
     [
       anchor.utils.bytes.utf8.encode("sea-surface-temperature"),
@@ -70,6 +150,7 @@ describe("Endcoin", () => {
 
   const [pool] = PublicKey.findProgramAddressSync(
     [
+      amm.toBuffer(),
       endcoin.publicKey.toBuffer(),
       gaiacoin.publicKey.toBuffer(),
     ],
@@ -77,7 +158,9 @@ describe("Endcoin", () => {
   );
   const [poolAuthority] = PublicKey.findProgramAddressSync(
     [
-      // seeds = [POOL_AUTHORITY_SEED]
+      amm.toBuffer(),
+      endcoin.publicKey.toBuffer(),
+      gaiacoin.publicKey.toBuffer(),
       anchor.utils.bytes.utf8.encode("pool-authority"),
     ],
     program.programId
@@ -178,7 +261,7 @@ it("Check values", async () => {
       .rpc();
   });
 
-  xit("Initialize AMM", async () => {
+  it("Initialize AMM", async () => {
 
     await program.methods
       .createAmm(amm_id.publicKey, 500)
@@ -194,7 +277,25 @@ it("Check values", async () => {
       .signers([payer, admin])
       .rpc();
   });
+  it("Initialize Pool", async () => {
 
+    await program.methods
+      .createPool()
+      .accountsStrict({
+      amm: amm,
+      pool: pool,
+      poolAuthority: poolAuthority,
+      mintLiquidity: mintLiquidityPool.publicKey,
+      mintA: endcoin.publicKey,
+      mintB: gaiacoin.publicKey,
+      payer: payer.publicKey,
+      tokenProgram: TOKEN_2022_PROGRAM_ID,
+      associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
+      systemProgram: anchor.web3.SystemProgram.programId,
+    })
+      .signers([mintLiquidityPool, payer])
+      .rpc();
+  });
 
   it("Update AMM", async () => {
     try {
@@ -240,7 +341,7 @@ it("Check values", async () => {
       tokenProgram: TOKEN_2022_PROGRAM_ID,
       systemProgram: anchor.web3.SystemProgram.programId,
     })
-      .signers([payer, gaiacoin])
+      .signers([payer])
       .preInstructions([
         // Add pre-instruction to create mint account
         anchor.web3.SystemProgram.createAccount({
