@@ -10,7 +10,7 @@ pub use contexts::*;
 pub mod contexts;
 
 
-declare_id!("3fVWRMNHVjxZgwsgioTBVbLpAx1jxUu4xMoDoQZZbVUK");
+declare_id!("H4Yiz3R9qdh5JHdpwwLaGBqejjJ4Y7v6FgUvtsRNZczW");
 
 #[program]
 pub mod endcoin {
@@ -20,6 +20,11 @@ pub mod endcoin {
         // Validate fee is within acceptable range (0-100%)
         require!(fee <= 10000, AmmError::InvalidFee); // 10000 = 100.00%
         ctx.accounts.create_amm(id, fee)?;
+        Ok(())
+    }
+
+    pub fn update_admin(ctx: Context<UpdateAmm>, new_admin: Pubkey) -> Result<()> {
+        ctx.accounts.update_admin(new_admin)?;
         Ok(())
     }
 

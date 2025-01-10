@@ -9,12 +9,14 @@ pub struct Amm {
     pub admin: Pubkey,
     /// The LP fee taken on each trade, in basis points
     pub fee: u16,
-
+    /// The AMM has been created
     pub created: bool,
+    /// Whether the AMM is immutable
+    pub is_immutable: bool,
 
 }
 impl Amm {
-    pub const LEN: usize = 8 + 32 + 32 + 2 + 1;
+    pub const LEN: usize = 8 + 32 + 32 + 2 + 1 + 1;
 }
 
 #[account]

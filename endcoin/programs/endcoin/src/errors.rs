@@ -21,8 +21,13 @@ pub enum AmmError {
     AlreadyCreated,
     
     #[msg("Unauthorized Admin account used.")]
-    UnauthorizedAdmin
+    UnauthorizedAdmin,
 
+    #[msg("The AMM has not been created, cannot update.")]
+    NotCreated,
+
+    #[msg("Admin is not a signer")]
+    NotSigner
 
 }
 

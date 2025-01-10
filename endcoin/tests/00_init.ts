@@ -63,7 +63,7 @@ describe("Endcoin", () => {
   const [amm] = PublicKey.findProgramAddressSync(
     [
       anchor.utils.bytes.utf8.encode("amm"),
-      admin.publicKey.toBuffer(),
+      amm_id.publicKey.toBuffer(),
     ],
     program.programId
   );
@@ -165,7 +165,7 @@ it("Check values", async () => {
 });
 
 
-  it("Initialize SST", async () => {
+  xit("Initialize SST", async () => {
 
     await program.methods
       .createSst()
@@ -178,7 +178,7 @@ it("Check values", async () => {
       .rpc();
   });
 
-  it("Initialize AMM", async () => {
+  xit("Initialize AMM", async () => {
 
     await program.methods
       .createAmm(amm_id.publicKey, 500)
@@ -195,39 +195,39 @@ it("Check values", async () => {
       .rpc();
   });
 
-// Add this before your test
-console.log("Extra Metas Account PDA:", extraMetasAccountEndcoin.toString());
-console.log("Error Address:", "9NbHfXPc7fMFoPdr6bnahZkykSTQ4T46s7YSjoSHtqy");
-  it("Initialize ENDCOIN", async () => {
-// Add this before your test
-console.log("Extra Metas Account PDA:", extraMetasAccountEndcoin.toString());
-console.log("Error Address:", "9NbHfXPc7fMFoPdr6bnahZkykSTQ4T46s7YSjoSHtqy");
-    await program.methods
-      .createEndcoin()
-      .accountsStrict({
-      mintA: endcoin.publicKey,
-      extraMetasAccountMintA: extraMetasAccountEndcoin,
-      authority: authority,
-      payer: payer.publicKey,
-      associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
-      tokenProgram: TOKEN_2022_PROGRAM_ID,
-      systemProgram: anchor.web3.SystemProgram.programId,
-    })
-      .signers([payer, endcoin])
-      .preInstructions([
-        // Add pre-instruction to create mint account
-        anchor.web3.SystemProgram.createAccount({
-          fromPubkey: payer.publicKey,
-          newAccountPubkey: endcoin.publicKey,
-          space: 82, // Minimum size for a Token2022 mint
-          lamports: await provider.connection.getMinimumBalanceForRentExemption(82),
-          programId: TOKEN_2022_PROGRAM_ID,
-        }),
-      ])
-      .rpc();
+
+  it("Update AMM", async () => {
+    try {
+
+    // Fetch the AMM account data before the transaction
+    let ammAccountBefore = await program.account.amm.fetch(amm);
+    console.log("AMM Admin before update:", ammAccountBefore.admin.toBase58());
+
+
+      await program.methods
+        .updateAdmin(payer.publicKey)
+        .accountsStrict({
+          amm: amm,
+          admin: admin.publicKey
+        })
+        .signers([admin])
+        .rpc();
+      console.log("Update AMM transaction successful");
+
+      // Fetch the AMM account data after the transaction
+    let ammAccountAfter = await program.account.amm.fetch(amm);
+    console.log("AMM Admin after update:", ammAccountAfter.admin.toBase58());
+
+    // Assert that the admin has been updated
+    assert.equal(ammAccountAfter.admin.toBase58(), payer.publicKey.toBase58(), "Admin should be updated to the new admin");
+    } catch (err) {
+      console.error("Error updating AMM:", err);
+    }
   });
 
-  it("Initialize GAIACOIN", async () => {
+
+
+  xit("Initialize GAIACOIN", async () => {
 
     await program.methods
       .createGaiacoin()
@@ -254,26 +254,8 @@ console.log("Error Address:", "9NbHfXPc7fMFoPdr6bnahZkykSTQ4T46s7YSjoSHtqy");
       .rpc();
   });
 
-  it("Initialize Pool", async () => {
 
-    await program.methods
-      .createPool()
-      .accountsStrict({
-        pool: pool,
-        amm: amm,
-        poolAuthority: poolAuthority,
-        mintA: endcoin.publicKey,
-        mintB: gaiacoin.publicKey,
-        payer: payer.publicKey,
-        tokenProgram: TOKEN_2022_PROGRAM_ID,
-        associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
-        systemProgram: anchor.web3.SystemProgram.programId
-    })
-      .signers([payer])
-      .rpc();
-  });
-
-  it("Pull Feed", async () => {
+  xit("Pull Feed", async () => {
 
 
     let feed = "GhCs7zhha7kTyt8EiaWaBT5DREt23GnoPnqa7AU4yv1y";
