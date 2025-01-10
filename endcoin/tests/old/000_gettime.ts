@@ -4,11 +4,11 @@ import {
     Keypair,
     PublicKey
   } from "@solana/web3.js";
-import { Endcoin } from "../target/types/endcoin";
+import { Endcoin } from "./target/types/endcoin";
 
 
 // import my keypair
-import PAYER_KEY  from "./keys/wba-wallet.json";
+import PAYER_KEY  from "./tests/keys/wba-wallet.json";
 
 
 
