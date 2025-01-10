@@ -326,36 +326,6 @@ it("Check values", async () => {
     }
   });
 
-
-
-  xit("Initialize GAIACOIN", async () => {
-
-    await program.methods
-      .createGaiacoin()
-      .accountsStrict({
-      mintB: gaiacoin.publicKey,
-      extraMetasAccountMintB: extraMetasAccountGaiacoin,
-      authority: authority,
-      payer: payer.publicKey,
-      associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
-      tokenProgram: TOKEN_2022_PROGRAM_ID,
-      systemProgram: anchor.web3.SystemProgram.programId,
-    })
-      .signers([payer])
-      .preInstructions([
-        // Add pre-instruction to create mint account
-        anchor.web3.SystemProgram.createAccount({
-          fromPubkey: payer.publicKey,
-          newAccountPubkey: gaiacoin.publicKey,
-          space: 82, // Minimum size for a Token2022 mint
-          lamports: await provider.connection.getMinimumBalanceForRentExemption(82),
-          programId: TOKEN_2022_PROGRAM_ID,
-        }),
-      ])
-      .rpc();
-  });
-
-
   xit("Pull Feed", async () => {
 
 
@@ -448,41 +418,6 @@ if (!logs) {
 });
 
 
-
-
-
-  // xit("mint extension constraints test passes", async () => {
-  //   try {
-  //     const tx = await program.methods
-  //     .checkMintExtensionsConstraints()
-  //     .accountsStrict({
-  //       authority: payer.publicKey,
-  //       mint: endcoin.publicKey,
-  //     })
-  //     .signers([payer])
-  //     .rpc();
-  //     assert.ok(tx, "transaction should be processed without error");
-  //   } catch (e) {
-  //     assert.fail('should not throw error');
-  //   }
-  // });
-  // xit("mint extension constraints fails with invalid authority", async () => {
-  //   const wrongAuth = Keypair.generate();
-  //   try {
-  //     const x = await program.methods
-  //     .checkMintExtensionsConstraints()
-  //     .accountsStrict({
-  //       authority: wrongAuth.publicKey,
-  //       mint: endcoin.publicKey,
-  //     })
-  //     .signers([payer, wrongAuth])
-  //     .rpc();
-  //     assert.fail('should have thrown an error');
-  //   } catch (e) {
-  //     expect(e, 'should throw error');
-  //   }
-
-  // })
 });
 
 

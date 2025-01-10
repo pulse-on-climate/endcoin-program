@@ -45,7 +45,8 @@ pub struct CreatePool<'info> {
             mint_b.key().as_ref(),
         ],
         bump,
-        // constraint = mint_a.key() < mint_b.key() @ AmmError::InvalidMint
+        // todo: confirm all constraints for pool account.
+        constraint = mint_a.key() != mint_b.key() @ AmmError::InvalidMint,
     )]
     pub pool: Box<Account<'info, Pool>>,
 
