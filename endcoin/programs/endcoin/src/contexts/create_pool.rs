@@ -4,7 +4,7 @@ use anchor_spl::{
     associated_token::AssociatedToken,
     token_interface::{
         Mint,
-        Token2022
+        Token2022, TokenAccount
     },
 };
 use crate::{
@@ -21,8 +21,19 @@ impl<'info> CreatePool<'info> {
         pool.mint_b = self.mint_b.key();
 
         Ok(())
+
+    
+
     }
 }
+
+impl<'info> CreateTokenAccounts<'info> {
+    pub fn create_token_accounts(&mut self) -> Result<()> {
+        Ok(())
+    }
+}
+
+
 
 #[derive(Accounts)]
 pub struct CreatePool<'info> {
@@ -49,14 +60,13 @@ pub struct CreatePool<'info> {
         constraint = mint_a.key() != mint_b.key() @ AmmError::InvalidMint,
     )]
     pub pool: Box<Account<'info, Pool>>,
-
-    /// CHECK: Read only authority
+    /// CHECK:
     #[account(
         seeds = [
             amm.key().as_ref(),
             mint_a.key().as_ref(),
             mint_b.key().as_ref(),
-            POOL_AUTHORITY_SEED.as_ref(),
+            POOL_AUTHORITY_SEED,
         ],
         bump,
     )]
@@ -93,4 +103,56 @@ pub struct CreatePool<'info> {
     pub system_program: Program<'info, System>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub token_program: Program<'info, Token2022>,
+}
+
+#[derive(Accounts)]
+pub struct CreateTokenAccounts<'info> {
+    #[account(
+        init,
+        payer = payer,
+        associated_token::mint = mint_a,
+        associated_token::authority = pool_authority,
+    )]
+    pub pool_account_a: Box<InterfaceAccount<'info, TokenAccount>>,
+
+    #[account(
+        init,
+        payer = payer,
+        associated_token::mint = mint_b,
+        associated_token::authority = pool_authority,
+    )]
+    pub pool_account_b: Box<InterfaceAccount<'info, TokenAccount>>,
+    /// CHECK:
+    #[account(
+        seeds = [
+            amm.key().as_ref(),
+            mint_a.key().as_ref(),
+            mint_b.key().as_ref(),
+            POOL_AUTHORITY_SEED,
+        ],
+        bump,
+    )]
+    pub pool_authority: AccountInfo<'info>,
+
+    #[account(
+        seeds = [
+            AMM_SEED,
+            amm.id.as_ref()
+        ],
+        bump,
+    )]
+    pub amm: Box<Account<'info, Amm>>,
+
+
+    pub mint_a: Box<InterfaceAccount<'info, Mint>>,
+
+    pub mint_b: Box<InterfaceAccount<'info, Mint>>,
+
+    /// The account paying for all rents
+    #[account(mut)]
+    pub payer: Signer<'info>,
+    pub system_program: Program<'info, System>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub token_program: Program<'info, Token2022>,
+
 }

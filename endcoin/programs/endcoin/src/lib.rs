@@ -39,7 +39,12 @@ pub mod endcoin {
         ctx.accounts.create_pool()?;
         Ok(())
     }
-    
+    pub fn create_token_accounts(
+        ctx: Context<CreateTokenAccounts>
+    ) -> Result<()> {
+        ctx.accounts.create_token_accounts()?;
+        Ok(())
+    }
     pub fn create_endcoin(ctx: Context<CreateEndcoin>) -> Result<()>
     {
         ctx.accounts.initialize_endcoin()?;
