@@ -379,16 +379,16 @@ it("Check values", async () => {
         })
         .signers([admin])
         .rpc();
-      console.log("Update AMM transaction successful");
+      console.log("Update AMM fee transaction successful");
 
       // Fetch the AMM account data after the transaction
     let ammFeeAfter = await program.account.amm.fetch(amm);
     console.log("AMM Admin after update:", ammFeeAfter.fee);
 
     // Assert that the admin has been updated
-    assert.equal(ammFeeAfter.fee, new_fee, "Admin should be updated to the new admin");
+    assert.equal(ammFeeAfter.fee, new_fee, "Fee should be updated to the new Fee");
     } catch (err) {
-      console.error("Error updating AMM:", err);
+      console.error("Error updating Fee:", err);
     }
   });
 
