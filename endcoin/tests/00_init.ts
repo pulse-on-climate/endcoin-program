@@ -51,10 +51,18 @@ export function associatedAddress({
 
 
 
-  // create a token 2022 mint
-  async function createMint(payer: anchor.web3.Keypair, mint: anchor.web3.Keypair): Promise<anchor.web3.Keypair> {
 
-    const mintAuthority = Keypair.generate();
+  // create a token 2022 mint
+  async function createMint(payer: anchor.web3.Keypair, mint: anchor.web3.Keypair, program): Promise<anchor.web3.Keypair> {
+    
+
+    const [mintAuthority] = PublicKey.findProgramAddressSync(
+      [
+        anchor.utils.bytes.utf8.encode("authority"),
+      ],
+      program.programId
+    );
+
     const freezeAuthority = Keypair.generate();
     const closeAuthority = Keypair.generate();
 
@@ -76,7 +84,7 @@ export function associatedAddress({
       createInitializeMintInstruction(
         mint.publicKey,
         6,
-        mintAuthority.publicKey,
+        mintAuthority,
         freezeAuthority.publicKey,
         TOKEN_2022_PROGRAM_ID
       )
@@ -100,13 +108,13 @@ describe("Endcoin", () => {
   
   it("Create endcoin", async () => {
 
-          endcoin = await createMint(payer, endcoin);
+          endcoin = await createMint(payer, endcoin, program);
           console.log("Endcoin mint created:", endcoin.publicKey.toBase58());
   
   });
   it("Create gaiacoin mint", async () => {
 
-    gaiacoin = await createMint(payer, gaiacoin);
+    gaiacoin = await createMint(payer, gaiacoin, program);
     console.log("Gaiacoin mint created:", gaiacoin.publicKey.toBase58());
   
   });
@@ -297,6 +305,35 @@ it("Check values", async () => {
       .rpc();
   });
 
+  it("Initialize Pool Mint A and B Token accounts", async () => {
+
+    await program.methods
+      .createTokenAccounts()
+      .accountsStrict({
+        poolAccountA: associatedAddress({
+          mint: endcoin.publicKey,
+          owner: poolAuthority,
+        }),
+        poolAccountB: associatedAddress({
+          mint: gaiacoin.publicKey,
+          owner: poolAuthority,
+        }),
+      amm: amm,
+      poolAuthority: poolAuthority,
+      mintA: endcoin.publicKey,
+      mintB: gaiacoin.publicKey,
+      payer: payer.publicKey,
+      tokenProgram: TOKEN_2022_PROGRAM_ID,
+      associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
+      systemProgram: anchor.web3.SystemProgram.programId,
+    })
+      .signers([payer])
+      .rpc();
+  });
+
+
+
+
   it("Update AMM", async () => {
     try {
 
@@ -375,7 +412,6 @@ it("Deposit Liquidity", async () => {
       mintA: endcoin.publicKey,
       mintB: gaiacoin.publicKey,
       mintAuthority: authority,
-      sst: sst,
       poolAccountA: associatedAddress({
         mint: endcoin.publicKey,
         owner: poolAuthority,
@@ -386,7 +422,7 @@ it("Deposit Liquidity", async () => {
       }),
       depositorAccountLiquidity: associatedAddress({
         mint: mintLiquidityPool.publicKey,
-        owner: authority,
+        owner: poolAuthority,
       }),
       tokenProgram: TOKEN_2022_PROGRAM_ID,
       associatedTokenProgram: ASSOCIATED_PROGRAM_ID,

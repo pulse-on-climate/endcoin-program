@@ -13,8 +13,8 @@ use anchor_spl::{
 use fixed::types::I64F64;
 use fixed_sqrt::FixedSqrt;
 
-use crate::{state::SST, Pool};
-use crate::constants::POOL_AUTHORITY_SEED;
+use crate::Pool;
+use crate::constants::{POOL_AUTHORITY_SEED, AUTHORITY_SEED};
 
 impl<'info> DepositLiquidity<'info> { 
 pub fn deposit_liquidity(
@@ -23,71 +23,74 @@ pub fn deposit_liquidity(
     mean_temp: f64,
 ) -> Result<()> {
 
-    // Calculate the amount of liquidity to mint for endcoin and gaiacoin
-    const DEATH: f64 = 35.000;
-    const ENDRATE: f64 = 1.125;
-    const GAIARATE: f64 = 0.750;
-    let mean_temp: f64 = mean_temp;
+    // compute result
+    let results = compute_results(mean_temp);
+
+    let amount_a = results.0;
+    let amount_b = results.1;
+    let liquidity = results.2;
     
-    //Endcoin calculation
-    let endcoin_emission = (ENDRATE * (DEATH - mean_temp)) - 1.000;
-    let endcoin_exp = (endcoin_emission).exp() as u64;
-    
-    //Gaiacoin calculation
-    let gaiacoin_emission= (GAIARATE * (mean_temp)) - 1.000;
-    let gaiacoin_exp = (gaiacoin_emission).exp() as u64;
-
-    let amount_a: u64 = (endcoin_exp / 100) * 95;
-    let amount_b: u64 = (gaiacoin_exp / 100) * 95;
-
-    // let user_amount_a: u64 = (endcoin_exp / 100) * 5;
-    // let user_amount_b: u64 = (gaiacoin_exp / 100) * 5;
-  
-
-
-    // Computing the amount of liquidity about to be deposited
-    let liquidity = I64F64::from_num(amount_a)
-        .checked_mul(I64F64::from_num(amount_b))
-        .unwrap()
-        .sqrt()
-        .to_num::<u64>();
-
     // Mint tokens directly to pool, as we don't need a depositor. 
     let seeds = &[
-        "auth".as_bytes(),
+        "authority".as_bytes(),
         &[bumps.mint_authority]
     ];
     let mint_signer_seeds = &[&seeds[..]];
 
     // minting the correct amount of tokens to the pool for token a
-    let _ = mint_to(
-        CpiContext::new_with_signer(
-            self.token_program.to_account_info(), 
-            MintTo
-            {
-                mint: self.mint_a.to_account_info(),
-                to: self.pool_account_a.to_account_info(),
-                authority: self.mint_authority.to_account_info(),
-            } ,
-            mint_signer_seeds
-        ),
-        amount_a
-    );
+    // let _ = mint_to(
+    //     CpiContext::new_with_signer(
+    //         self.token_program.to_account_info(), 
+    //         MintTo
+    //         {
+    //             mint: self.mint_a.to_account_info(),
+    //             to: self.pool_account_a.to_account_info(),
+    //             authority: self.mint_authority.to_account_info(),
+    //         } ,
+    //         mint_signer_seeds
+    //     ),
+    //     amount_a
+    // );
 
-// minting the correct amount of tokens to the pool for token b
-    let _ = mint_to(
-        CpiContext::new_with_signer(
-            self.token_program.to_account_info(), 
-            MintTo
-            {
-                mint: self.mint_b.to_account_info(),
-                to: self.pool_account_b.to_account_info(),
-                authority: self.mint_authority.to_account_info(),
-            } ,
-            mint_signer_seeds
-        ),
-        amount_b
-    );
+    self.mint_token(
+        self.mint_a.to_account_info(),
+        self.pool_account_a.to_account_info(),
+        self.mint_authority.to_account_info(),
+        amount_a,
+        mint_signer_seeds,
+        self.token_program.to_account_info(),
+    )?;
+
+
+
+    // minting the correct amount of tokens to the pool for token b
+    // let _ = mint_to(
+    //     CpiContext::new_with_signer(
+    //         self.token_program.to_account_info(), 
+    //         MintTo
+    //         {
+    //             mint: self.mint_b.to_account_info(),
+    //             to: self.pool_account_b.to_account_info(),
+    //             authority: self.mint_authority.to_account_info(),
+    //         } ,
+    //         mint_signer_seeds
+    //     ),
+    //     amount_b
+    // );
+
+    self.mint_token(
+        self.mint_b.to_account_info(),
+        self.pool_account_b.to_account_info(),
+        self.mint_authority.to_account_info(),
+        amount_b,
+        mint_signer_seeds,
+        self.token_program.to_account_info(),
+    )?;
+
+
+
+
+
 
 //     // minting the correct amount of tokens to the user for token a
 //     let _ = mint_to(
@@ -148,28 +151,92 @@ pub fn deposit_liquidity(
     // Mint the liquidity token to the AMM.
     let authority_bump = bumps.pool_authority;
     let authority_seeds = &[
+        &self.pool.amm.key().to_bytes(),
         &self.mint_a.key().to_bytes(),
         &self.mint_b.key().to_bytes(),
-        b"authority".as_ref(),
+        b"pool-authority".as_ref(),
         &[authority_bump],
     ];
     let liquidity_signer_seeds = &[&authority_seeds[..]];
-    mint_to(
-        CpiContext::new_with_signer(
-            self.token_program.to_account_info(),
-            MintTo {
-                mint: self.mint_liquidity.to_account_info(),
-                to: self.depositor_account_liquidity.to_account_info(),
-                authority: self.pool_authority.to_account_info(),
-            },
-            liquidity_signer_seeds
-        ),
+    
+    self.mint_token(
+        self.mint_liquidity.to_account_info(),
+        self.depositor_account_liquidity.to_account_info(),
+        self.pool_authority.to_account_info(),
         liquidity,
+        liquidity_signer_seeds,
+        self.token_program.to_account_info(),
     )?;
 
     Ok(())
 }
+
+pub fn mint_token(
+
+    &mut self,
+    mint: AccountInfo<'info>, 
+    to: AccountInfo<'info>, 
+    authority: AccountInfo<'info>, 
+    amount: u64, 
+    signer_seeds: &[&[&[u8]]; 1] , 
+    token_program: AccountInfo<'info>
+
+) -> Result<()> {
+
+    mint_to(
+        CpiContext::new_with_signer(
+            token_program,
+            MintTo {
+                mint,
+                to,
+                authority,
+            },
+            signer_seeds
+        ),
+        amount,
+    )?;
+
+    Ok(())
+
 }
+
+}
+
+pub fn compute_results(mean_temp: f64) -> (u64, u64, u64) {
+    // Calculate the amount of liquidity to mint for endcoin and gaiacoin
+    const DEATH: f64 = 35.000;
+    const ENDRATE: f64 = 1.125;
+    const GAIARATE: f64 = 0.750;
+    
+    //Endcoin calculation
+    let endcoin_emission = (ENDRATE * (DEATH - mean_temp)) - 1.000;
+    let endcoin_exp = (endcoin_emission).exp() as u64;
+    
+    //Gaiacoin calculation
+    let gaiacoin_emission= (GAIARATE * (mean_temp)) - 1.000;
+    let gaiacoin_exp = (gaiacoin_emission).exp() as u64;
+
+    let amount_a: u64 = (endcoin_exp / 100) * 95;
+    let amount_b: u64 = (gaiacoin_exp / 100) * 95;
+
+    // let user_amount_a: u64 = (endcoin_exp / 100) * 5;
+    // let user_amount_b: u64 = (gaiacoin_exp / 100) * 5;
+  
+
+
+    // Computing the amount of liquidity about to be deposited
+    let liquidity = I64F64::from_num(amount_a)
+        .checked_mul(I64F64::from_num(amount_b))
+        .unwrap()
+        .sqrt()
+        .to_num::<u64>();
+
+    return (amount_a, amount_b, liquidity);
+}
+
+
+
+
 #[derive(Accounts)]
 pub struct DepositLiquidity<'info> {
     #[account(
@@ -184,14 +251,14 @@ pub struct DepositLiquidity<'info> {
     )]
     pub pool: Box<Account<'info, Pool>>,
 
-    /// CHECK: Read only authority
+    ///CHECK: The Pool authority account
     #[account(
         mut,
         seeds = [
             pool.amm.key().as_ref(),
             pool.mint_a.key().as_ref(),
             pool.mint_b.key().as_ref(),
-            POOL_AUTHORITY_SEED.as_ref(),
+            POOL_AUTHORITY_SEED,
         ],
         bump,
     )]
@@ -201,39 +268,23 @@ pub struct DepositLiquidity<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
 
-    // /// CHECK: Read only authority
-    // #[account(mut)]
-    // pub user_authority: AccountInfo<'info>,
-
     #[account(mut)]
     pub mint_liquidity: Box<InterfaceAccount<'info, Mint>>,
 
     #[account(mut)]
     pub mint_a: Box<InterfaceAccount<'info, Mint>>,
-
     #[account(mut)]
     pub mint_b: Box<InterfaceAccount<'info, Mint>>,
-
-    #[account(
-        mut,
-        associated_token::mint = mint_a,
-        associated_token::authority = pool_authority,
-    )]
+    #[account(mut)]
     pub pool_account_a: Box<InterfaceAccount<'info, TokenAccount>>,
-
-    #[account(
-        mut,
-        associated_token::mint = mint_b,
-        associated_token::authority = pool_authority,
-    )]
+    #[account(mut)]
     pub pool_account_b: Box<InterfaceAccount<'info, TokenAccount>>,
 
     #[account(
-        
         init_if_needed,
         payer = payer,
         associated_token::mint = mint_liquidity,
-        associated_token::authority = mint_authority,
+        associated_token::authority = pool_authority,
     )]
     pub depositor_account_liquidity: Box<InterfaceAccount<'info, TokenAccount>>,
 
@@ -242,16 +293,10 @@ pub struct DepositLiquidity<'info> {
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
 
-    #[account(mut,
-        seeds = [
-            b"seaSurfaceTemperature",
-        ],
-        bump
-    )] pub sst: Account<'info, SST>,
     /// CHECK: Mint authority account
     #[account(
         mut,
-        seeds = [b"auth"],
+        seeds = [AUTHORITY_SEED.as_ref()],
         bump
     )]
     pub mint_authority: UncheckedAccount<'info>,
