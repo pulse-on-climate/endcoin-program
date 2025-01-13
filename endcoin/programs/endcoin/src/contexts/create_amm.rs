@@ -53,7 +53,24 @@ pub struct UpdateAmm<'info> {
     pub admin: Signer<'info>,
 }
 
+#[derive(Accounts)]
+#[instruction(new_fee: u16)]
+pub struct UpdateFee<'info> {
+    #[account(
+        mut,
+        seeds = [
+            AMM_SEED,
+            amm.id.as_ref()
+        ],
+        bump,
+    )]
+    pub amm: Account<'info, Amm>,
 
+    #[account(
+        constraint = admin.is_signer @ AmmError::UnauthorizedAdmin
+    )]
+    pub admin: Signer<'info>,
+}
 
 
 
@@ -131,4 +148,34 @@ impl<'info> UpdateAmm<'info> {
         msg!("AMM is now immutable");
         Ok(())
     }
+}
+
+impl<'info> UpdateFee<'info> {
+    pub fn update_fee(
+        &mut self,
+        new_fee: u16,
+    ) -> Result<()> {
+        
+        // Check if the AMM has already been created by checking if the id is not the default value
+        if self.amm.id == Pubkey::default() {
+            msg!("AMM has not been created, cannot update admin");
+            return Err(AmmError::NotCreated.into());
+        }
+        // Check if the AMM is immutable. If it is, then it cannot be updated.
+        if self.amm.is_immutable {
+            msg!("AMM Is now immutable. Cannot update.");
+            return Err(AmmError::UnauthorizedAdmin.into());
+        }
+
+        // Add in a check for the admin's signature
+        if !self.admin.is_signer {
+            return Err(AmmError::NotSigner.into());
+        }
+        
+        // Set the new admin
+        self.amm.fee = new_fee;
+        msg!("Admin Updated");
+        Ok(())
+    }
+
 }

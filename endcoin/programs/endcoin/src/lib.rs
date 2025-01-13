@@ -27,7 +27,10 @@ pub mod endcoin {
         ctx.accounts.update_admin(new_admin)?;
         Ok(())
     }
-
+    pub fn update_fee(ctx: Context<UpdateFee>, new_fee: u16) -> Result<()> {
+        ctx.accounts.update_fee(new_fee)?;
+        Ok(())
+    }
     pub fn create_sst(ctx: Context<CreateSST>) -> Result<()> {
         ctx.accounts.create_sst()?;
         Ok(())

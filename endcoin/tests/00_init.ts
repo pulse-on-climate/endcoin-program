@@ -363,6 +363,37 @@ it("Check values", async () => {
     }
   });
 
+  it("Update AMM Fee", async () => {
+    try {
+    let new_fee = 11000;
+    // Fetch the AMM account data before the transaction
+    let ammFeeBefore = await program.account.amm.fetch(amm);
+    console.log("AMM Fee before update:", ammFeeBefore.fee);
+
+
+      await program.methods
+        .updateFee(new_fee)
+        .accountsStrict({
+          amm: amm,
+          admin: admin.publicKey
+        })
+        .signers([admin])
+        .rpc();
+      console.log("Update AMM transaction successful");
+
+      // Fetch the AMM account data after the transaction
+    let ammFeeAfter = await program.account.amm.fetch(amm);
+    console.log("AMM Admin after update:", ammFeeAfter.fee);
+
+    // Assert that the admin has been updated
+    assert.equal(ammFeeAfter.fee, new_fee, "Admin should be updated to the new admin");
+    } catch (err) {
+      console.error("Error updating AMM:", err);
+    }
+  });
+
+
+
   xit("Pull Feed", async () => {
 
 
