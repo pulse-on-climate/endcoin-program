@@ -216,8 +216,8 @@ pub fn compute_results(mean_temp: f64) -> (u64, u64, u64) {
     let gaiacoin_emission= (GAIARATE * (mean_temp)) - 1.000;
     let gaiacoin_exp = (gaiacoin_emission).exp() as u64;
 
-    let amount_a: u64 = (endcoin_exp / 100) * 95;
-    let amount_b: u64 = (gaiacoin_exp / 100) * 95;
+    let amount_a: u64 = endcoin_exp;
+    let amount_b: u64 = gaiacoin_exp;
 
     // let user_amount_a: u64 = (endcoin_exp / 100) * 5;
     // let user_amount_b: u64 = (gaiacoin_exp / 100) * 5;
