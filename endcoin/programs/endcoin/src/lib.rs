@@ -48,21 +48,48 @@ pub mod endcoin {
         ctx.accounts.create_token_accounts()?;
         Ok(())
     }
-    pub fn create_endcoin(ctx: Context<CreateEndcoin>) -> Result<()>
-    {
-        ctx.accounts.initialize_endcoin()?;
+    pub fn create_reward_vault(
+        ctx: Context<CreateRewardVault>
+    ) -> Result<()> {
+        ctx.accounts.create_reward_vault(&ctx.bumps)?;
         Ok(())
     }
-    pub fn create_gaiacoin(ctx: Context<CreateGaiacoin>) -> Result<()>
-    {
-        ctx.accounts.initialize_gaiacoin()?;
+    pub fn create_reward_token_accounts(
+        ctx: Context<CreateRewardTokenAccounts>
+    ) -> Result<()> {
+        ctx.accounts.create_reward_token_accounts()?;
         Ok(())
     }
+
+    // pub fn create_endcoin(ctx: Context<CreateEndcoin>) -> Result<()>
+    // {
+    //     ctx.accounts.initialize_endcoin()?;
+    //     Ok(())
+    // }
+    // pub fn create_gaiacoin(ctx: Context<CreateGaiacoin>) -> Result<()>
+    // {
+    //     ctx.accounts.initialize_gaiacoin()?;
+    //     Ok(())
+    // }
 
     pub fn deposit_liquidity(
         ctx: Context<DepositLiquidity>, mean_temp: f64
     ) -> Result<()> {
         ctx.accounts.deposit_liquidity(&ctx.bumps, mean_temp)
+    }
+
+    pub fn deposit_rewards(
+        ctx: Context<DepositRewards>,
+        mean_temp: f64
+    ) -> Result<()> {
+        ctx.accounts.deposit_rewards(&ctx.bumps, mean_temp)
+    }
+
+    pub fn claim_reward(
+        ctx: Context<ClaimReward>,
+        claimer: Pubkey, amount_a: u64, amount_b: u64
+    ) -> Result<()> {
+        ctx.accounts.claim_reward(claimer, amount_a, amount_b)
     }
     
     pub fn swap_exact_tokens_for_tokens(
@@ -79,7 +106,7 @@ pub mod endcoin {
         Ok(())
     }
 
-    pub fn update_timestamp(ctx: Context<HelloState>) -> Result<()> {
+    pub fn update_timestamp(ctx: Context<TimeState>) -> Result<()> {
         ctx.accounts.update_timestamp()?;
         Ok(())
     }

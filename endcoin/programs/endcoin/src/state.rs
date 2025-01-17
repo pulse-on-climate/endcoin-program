@@ -45,3 +45,16 @@ pub struct Pool {
 impl Pool {
     pub const LEN: usize = 8 + 32 + 32 + 32;
 }
+
+#[account()]
+#[derive(Default)]
+pub struct RewardVault {
+    pub pool: Pubkey,
+    pub mint_a: Pubkey,
+    pub mint_b: Pubkey,
+    pub bump: u8
+}
+impl RewardVault {
+    pub const LEN: usize = 8 + 32 + 32 + 32 + 1;
+}
+
