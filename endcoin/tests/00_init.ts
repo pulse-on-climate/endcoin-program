@@ -3,12 +3,15 @@ import { Program } from "@coral-xyz/anchor";
 import { Endcoin } from "../target/types/endcoin";
 import { ASSOCIATED_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
 import { assert, expect } from "chai";
-import PAYER_KEY  from "./keys/wba-wallet.json";
-import AMM_ID_KEY from "/Users/andrew/endcoin-wallet/amm_id.json";
-import ADMIN_KEY from "/Users/andrew/endcoin-wallet/admin.json";
-import ENDCOIN_KEY from "/Users/andrew/endcoin-wallet/endcoin.json";
-import GAIACOIN_KEY from "/Users/andrew/endcoin-wallet/gaiacoin.json";
-import MINTLP_KEY from "/Users/andrew/endcoin-wallet/mintLP.json";
+import * as dotenv from 'dotenv';
+
+// Load environment variables
+console.log("Current working directory:", process.cwd());
+
+dotenv.config();
+
+// Log all environment variables (be careful with this in production!)
+console.log("Available environment variables:", Object.keys(process.env));
 
 import {
   closeAccount,
@@ -36,6 +39,19 @@ import {
 //   "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
 // );
 
+
+// Replace the direct imports with environment variables
+// Parse the string array into numbers
+const payerPrivateKey = JSON.parse(process.env.PAYER_PRIVATE_KEY || '[]');
+const payer = Keypair.fromSecretKey(Uint8Array.from(payerPrivateKey));
+
+// Similarly for admin if needed
+const adminPrivateKey = JSON.parse(process.env.ADMIN_PRIVATE_KEY || '[]');
+const admin = Keypair.fromSecretKey(Uint8Array.from(adminPrivateKey));
+
+
+
+  // const admin = Keypair.fromSecretKey(Uint8Array.from(ADMIN_KEY));
 
 // associated token addresses
 export function associatedAddress({
@@ -99,8 +115,6 @@ const connection = provider.connection;
   }
 
 
-  const payer = Keypair.fromSecretKey(Uint8Array.from(PAYER_KEY));
-
   // Usage
   let endcoin = Keypair.generate();
   let gaiacoin = Keypair.generate();
@@ -141,7 +155,7 @@ describe("Endcoin", () => {
   
   const amm_id = Keypair.generate();
 
-  const admin = Keypair.fromSecretKey(Uint8Array.from(ADMIN_KEY));
+  // const admin = Keypair.fromSecretKey(Uint8Array.from(ADMIN_KEY));
   
   // const endcoin = Keypair.fromSecretKey(Uint8Array.from(ENDCOIN_KEY));
   
