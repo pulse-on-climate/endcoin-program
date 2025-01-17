@@ -27,8 +27,18 @@ pub enum AmmError {
     NotCreated,
 
     #[msg("Admin is not a signer")]
-    NotSigner
+    NotSigner,
 
+    #[msg("This account is not authorized to claim the reward.")]
+    UnauthorizedClaimer,
+    #[msg("Not enough tokens in the reward account.")]
+    InsufficientReward,
+
+    #[msg("Bump Error")]
+    BumpError,
+    
+    #[msg("Overflow Error")]
+    Overflow
 }
 
 #[error_code]
