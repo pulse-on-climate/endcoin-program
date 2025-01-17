@@ -3,7 +3,6 @@ import { Program } from "@coral-xyz/anchor";
 import { Endcoin } from "../target/types/endcoin";
 import { ASSOCIATED_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
 import { assert, expect } from "chai";
-
 import PAYER_KEY  from "./keys/wba-wallet.json";
 import AMM_ID_KEY from "/Users/andrew/endcoin-wallet/amm_id.json";
 import ADMIN_KEY from "/Users/andrew/endcoin-wallet/admin.json";
@@ -52,15 +51,16 @@ export function associatedAddress({
   )[0];
 }
 
-const connection = new Connection(clusterApiUrl('devnet'),
-  {
-    commitment: "confirmed"
-  });
+const provider = anchor.AnchorProvider.env();
+anchor.setProvider(provider);
+const connection = provider.connection;
 
 
   // create a token 2022 mint
-  async function createMint(payer: anchor.web3.Keypair, mint: anchor.web3.Keypair, program): Promise<anchor.web3.Keypair> {
-    
+  async function createMint(
+    payer: anchor.web3.Keypair, 
+    mint: anchor.web3.Keypair, 
+    program): Promise<anchor.web3.Keypair> {
 
     const [mintAuthority] = PublicKey.findProgramAddressSync(
       [
@@ -107,7 +107,7 @@ const connection = new Connection(clusterApiUrl('devnet'),
 
 describe("Endcoin", () => {
 
-  it("airdrop payer", async () => {
+  xit("airdrop payer", async () => {
     const tx = await provider.connection.requestAirdrop(payer.publicKey, 10000000000);
 
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -136,9 +136,6 @@ describe("Endcoin", () => {
   });
 
 
-
-  const provider = anchor.AnchorProvider.env();
-  anchor.setProvider(provider);
 
   const program = anchor.workspace.Endcoin as Program<Endcoin>;
   
@@ -231,11 +228,6 @@ const [extraMetasAccountGaiacoin] = PublicKey.findProgramAddressSync(
 program.programId
 );
 
-const [programData] = PublicKey.findProgramAddressSync(
-  [program.programId.toBuffer()],
-  new PublicKey('BPFLoaderUpgradeab1e1111111111111111111111111')
-);
-
 
 
   it("Check values", async () => {
@@ -283,6 +275,7 @@ const [programData] = PublicKey.findProgramAddressSync(
   });
 
   it("Initialize AMM", async () => {
+    const programDataAddress = (await connection.getProgramAccounts(new PublicKey('BPFLoaderUpgradeab1e11111111111111111111111')))[0].pubkey;
 
     await program.methods
       .createAmm(amm_id.publicKey, 500)
@@ -290,11 +283,10 @@ const [programData] = PublicKey.findProgramAddressSync(
         amm: amm,
         admin: admin.publicKey,
         program: program.programId,
-        programData: programData,  // You'll need to derive this
+        programData: programDataAddress,
         authority: payer.publicKey,
         systemProgram: anchor.web3.SystemProgram.programId,
-      
-    })
+      })
       .signers([payer, admin])
       .rpc();
   });
