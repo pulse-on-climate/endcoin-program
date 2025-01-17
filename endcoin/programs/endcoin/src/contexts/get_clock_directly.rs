@@ -13,7 +13,7 @@ impl Time {
 
 
 #[derive(Accounts, Debug)]
-pub struct HelloState<'info> {
+pub struct TimeState<'info> {
 
     // Time Account
     #[account(
@@ -39,7 +39,7 @@ pub struct HelloState<'info> {
 /// 
 /// 
 /// 
-impl<'info> HelloState<'info> { 
+impl<'info> TimeState<'info> { 
     pub fn update_timestamp(
         &mut self,
     ) -> Result<()> {
@@ -52,7 +52,7 @@ impl<'info> HelloState<'info> {
     let current_timestamp = clock.unix_timestamp;
 
     // check if account is initialized
-    if self.time.created == true { 
+    if self.time.created { 
 
         msg!("Account already initialized, checking timestamp");
         // check if timestamp is greater than current timestamp

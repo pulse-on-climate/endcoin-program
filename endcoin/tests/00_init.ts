@@ -18,6 +18,9 @@ import {
   getMintLen,
   ExtensionType,
   TOKEN_2022_PROGRAM_ID,
+  mintTo,
+  getOrCreateAssociatedTokenAccount,
+  createAssociatedTokenAccountIdempotent,
 } from '@solana/spl-token';
 import {
   PublicKey, 
@@ -49,7 +52,10 @@ export function associatedAddress({
   )[0];
 }
 
-
+const connection = new Connection(clusterApiUrl('devnet'),
+  {
+    commitment: "confirmed"
+  });
 
 
   // create a token 2022 mint
@@ -65,8 +71,6 @@ export function associatedAddress({
 
     const freezeAuthority = Keypair.generate();
     const closeAuthority = Keypair.generate();
-
-    const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
 
     const extensions = [ExtensionType.MintCloseAuthority];
     const mintLen = getMintLen(extensions);
@@ -97,14 +101,25 @@ export function associatedAddress({
 
   const payer = Keypair.fromSecretKey(Uint8Array.from(PAYER_KEY));
 
-
-
-
-      // Usage
-      let endcoin = Keypair.generate();
-      let gaiacoin = Keypair.generate();
+  // Usage
+  let endcoin = Keypair.generate();
+  let gaiacoin = Keypair.generate();
 
 describe("Endcoin", () => {
+
+  it("airdrop payer", async () => {
+    const tx = await provider.connection.requestAirdrop(payer.publicKey, 10000000000);
+
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      let confirm = await provider.connection.getSignatureStatuses([tx]);
+
+      if (confirm.value[0].err) {
+        throw new Error(confirm.value[0].err.toString());
+      }
+      if (confirm.value[0].confirmationStatus === 'confirmed') {
+        console.log('payer airdropped');
+      }
+  });
   
   it("Create endcoin", async () => {
 
@@ -112,12 +127,15 @@ describe("Endcoin", () => {
           console.log("Endcoin mint created:", endcoin.publicKey.toBase58());
   
   });
+
   it("Create gaiacoin mint", async () => {
 
     gaiacoin = await createMint(payer, gaiacoin, program);
     console.log("Gaiacoin mint created:", gaiacoin.publicKey.toBase58());
   
   });
+
+
 
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
@@ -164,6 +182,17 @@ describe("Endcoin", () => {
     ],
     program.programId
   );
+
+  const [rewardVault, _] = PublicKey.findProgramAddressSync(
+    [
+      pool.toBuffer(),
+      endcoin.publicKey.toBuffer(),
+      gaiacoin.publicKey.toBuffer(),
+      anchor.utils.bytes.utf8.encode("reward-vault"),
+    ],
+    program.programId
+  );
+
   const [poolAuthority] = PublicKey.findProgramAddressSync(
     [
       amm.toBuffer(),
@@ -173,6 +202,8 @@ describe("Endcoin", () => {
     ],
     program.programId
   );
+
+
 
   const [authority] = PublicKey.findProgramAddressSync(
     [
@@ -202,59 +233,41 @@ program.programId
 
 const [programData] = PublicKey.findProgramAddressSync(
   [program.programId.toBuffer()],
-  new PublicKey('BPFLoaderUpgradeab1e11111111111111111111111')
+  new PublicKey('BPFLoaderUpgradeab1e1111111111111111111111111')
 );
 
 
 
-  xit("airdrop payer", async () => {
-    const tx = await provider.connection.requestAirdrop(payer.publicKey, 10000000000);
+  it("Check values", async () => {
+    console.log("sst: " + sst);
+    console.log("amm: " + amm);
+    console.log("admin: " + admin.publicKey);
+    console.log("endcoin mint: " + endcoin.publicKey);
+    console.log("gaiacoin mint: " + gaiacoin.publicKey);
+    console.log("Extras Metas Endcoin: " + extraMetasAccountEndcoin);
+    console.log("Extras Metas Gaiacoin: " + extraMetasAccountGaiacoin);
+    console.log("payer: " + payer.publicKey);
+    console.log("Pool: " + pool);
+    console.log("endcoin ata: " + 
+      associatedAddress({
+          mint: endcoin.publicKey,
+          owner: pool,
+        })
+      );
+      console.log("gaiacoin ata: " + associatedAddress({
+          mint: gaiacoin.publicKey,
+          owner: pool,
+        })
+      );
+    console.log("MintLiquidityPool: " + mintLiquidityPool.publicKey);
+    console.log("PoolAuth: " + poolAuthority);
+    console.log("Auth: " + authority);
+    console.log("payer: " + payer.publicKey);
+    console.log("ProgramId: " + anchor.web3.SystemProgram.programId);
+    console.log("Associated Program ID: " + ASSOCIATED_PROGRAM_ID);
+    console.log("TOKEN 2022 PROGRAM ID: " + TOKEN_2022_PROGRAM_ID);
 
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      let confirm = await provider.connection.getSignatureStatuses([tx]);
-
-      if (confirm.value[0].err) {
-        throw new Error(confirm.value[0].err.toString());
-      }
-      if (confirm.value[0].confirmationStatus === 'confirmed') {
-        console.log('payer airdropped');
-      }
-    });
-
-
-
-
-it("Check values", async () => {
-  console.log("sst: " + sst);
-  console.log("amm: " + amm);
-  console.log("admin: " + admin.publicKey);
-  console.log("endcoin mint: " + endcoin.publicKey);
-  console.log("gaiacoin mint: " + gaiacoin.publicKey);
-  console.log("Extras Metas Endcoin: " + extraMetasAccountEndcoin);
-  console.log("Extras Metas Gaiacoin: " + extraMetasAccountGaiacoin);
-  console.log("payer: " + payer.publicKey);
-  console.log("Pool: " + pool);
-  console.log("endcoin ata: " + 
-    associatedAddress({
-        mint: endcoin.publicKey,
-        owner: pool,
-      })
-    );
-    console.log("gaiacoin ata: " + associatedAddress({
-        mint: gaiacoin.publicKey,
-        owner: pool,
-      })
-    );
-  console.log("MintLiquidityPool: " + mintLiquidityPool.publicKey);
-  console.log("PoolAuth: " + poolAuthority);
-  console.log("Auth: " + authority);
-  console.log("payer: " + payer.publicKey);
-  console.log("ProgramId: " + anchor.web3.SystemProgram.programId);
-  console.log("Associated Program ID: " + ASSOCIATED_PROGRAM_ID);
-  console.log("TOKEN 2022 PROGRAM ID: " + TOKEN_2022_PROGRAM_ID);
-
-});
-
+  });
 
   xit("Initialize SST", async () => {
 
@@ -285,6 +298,7 @@ it("Check values", async () => {
       .signers([payer, admin])
       .rpc();
   });
+
   it("Initialize Pool", async () => {
 
     await program.methods
@@ -304,6 +318,7 @@ it("Check values", async () => {
       .signers([mintLiquidityPool, payer])
       .rpc();
   });
+
 
   it("Initialize Pool Mint A and B Token accounts", async () => {
 
@@ -331,8 +346,61 @@ it("Check values", async () => {
       .rpc();
   });
 
+  it("Create Reward Vault", async () => {
+
+    const [rewardAuthority] = await PublicKey.findProgramAddressSync(
+      [
+        pool.toBuffer(),
+        endcoin.publicKey.toBuffer(),
+        gaiacoin.publicKey.toBuffer(),
+        anchor.utils.bytes.utf8.encode("reward-authority"),
+      ],
+      program.programId
+    );
 
 
+    await program.methods
+      .createRewardVault()
+      .accountsStrict({
+        rewardVault: rewardVault,
+        pool: pool,
+        mintA: endcoin.publicKey,
+        mintB: gaiacoin.publicKey,
+        payer: payer.publicKey,
+        tokenProgram: TOKEN_2022_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .signers([payer])
+      .rpc();
+  });
+
+
+  it("Create Reward Token Accounts", async () => {
+
+    await program.methods
+      .createRewardTokenAccounts()
+      .accountsStrict({
+        pool: pool,
+        rewardVault: rewardVault,
+        mintA: endcoin.publicKey,
+        mintB: gaiacoin.publicKey,
+        payer: payer.publicKey,
+        tokenProgram: TOKEN_2022_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
+        systemProgram: anchor.web3.SystemProgram.programId,
+        rewardAccountA: associatedAddress({
+          mint: endcoin.publicKey,
+          owner: rewardVault,
+        }),
+        rewardAccountB: associatedAddress({
+          mint: gaiacoin.publicKey,
+          owner: rewardVault,
+        }),
+      })
+      .signers([payer])
+      .rpc();
+  });
 
   it("Update AMM", async () => {
     try {
@@ -393,6 +461,68 @@ it("Check values", async () => {
   });
 
 
+  // it("Send Endcoin and gaiacoin to payer wallet for tests", async () => {
+
+  //   const [mintAuthority, mintAuthorityBump] = PublicKey.findProgramAddressSync(
+  //     [anchor.utils.bytes.utf8.encode("authority")],
+  //     program.programId
+  //   );
+
+  //   const mintAuthoritySeeds = [
+  //     anchor.utils.bytes.utf8.encode("authority"),
+  //     new Uint8Array([mintAuthorityBump])
+  //   ];
+
+  //   // let tokenAccountEndcoin = await getOrCreateAssociatedTokenAccount(
+  //   //   connection,
+  //   //   payer,
+  //   //   endcoin.publicKey,
+  //   //   payer.publicKey
+  //   // );
+
+  //   let tokenAccountEndcoin = await createAssociatedTokenAccountIdempotent(provider.connection, 
+  //     payer, 
+  //     endcoin.publicKey, 
+  //     payer.publicKey, 
+  //     {}, 
+  //     TOKEN_2022_PROGRAM_ID
+  //   );
+  
+  //   let tokenAccountGaiacoin = await createAssociatedTokenAccountIdempotent(provider.connection, 
+  //     payer, 
+  //     gaiacoin.publicKey, 
+  //     payer.publicKey, 
+  //     {}, 
+  //     TOKEN_2022_PROGRAM_ID
+  //   );
+  
+  //   console.log("Endcoin ATA: " + tokenAccountEndcoin);
+  //   console.log("Gaiacoin ATA: " + tokenAccountGaiacoin);
+  
+  //   await mintTo(
+  //     connection,
+  //     payer,
+  //     endcoin.publicKey,
+  //     tokenAccountEndcoin,
+  //     mintAuthority,
+  //     100,
+  //     [payer],
+  //     mintAuthoritySeeds
+  //   );
+  
+  //   await mintTo(
+  //     connection,
+  //     payer,
+  //     gaiacoin.publicKey,
+  //     tokenAccountGaiacoin,
+  //     mintAuthority,
+  //     100,
+  //     [Keypair.fromSeed(mintAuthoritySeeds[0])]
+  //   );
+
+
+  // });
+
 
   xit("Pull Feed", async () => {
 
@@ -428,61 +558,192 @@ it("Check values", async () => {
   } else {
     console.log("Logs:", logs);
   }
-});
+  });
 
-it("Deposit Liquidity", async () => {
-  let latestValue = 20.7;
+  it("Deposit Liquidity", async () => {
+    let latestValue = 21.00;
 
-  const tx = await program.methods
-    .depositLiquidity(latestValue)
+    const tx = await program.methods
+      .depositLiquidity(latestValue)
+      .accountsStrict({
+        pool: pool,
+        poolAuthority: poolAuthority,
+        payer: payer.publicKey,
+        mintLiquidity: mintLiquidityPool.publicKey,
+        mintA: endcoin.publicKey,
+        mintB: gaiacoin.publicKey,
+        mintAuthority: authority,
+        poolAccountA: associatedAddress({
+          mint: endcoin.publicKey,
+          owner: poolAuthority,
+        }),
+        poolAccountB: associatedAddress({
+          mint: gaiacoin.publicKey,
+          owner: poolAuthority,
+        }),
+        depositorAccountLiquidity: associatedAddress({
+          mint: mintLiquidityPool.publicKey,
+          owner: poolAuthority,
+        }),
+        tokenProgram: TOKEN_2022_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
+        systemProgram: anchor.web3.SystemProgram.programId,
+  }).rpc();
+
+  const latestBlockHash = await provider.connection.getLatestBlockhash();
+  await provider.connection.confirmTransaction(
+    {
+      blockhash: latestBlockHash.blockhash,
+      lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
+      signature: tx,
+    },
+    "confirmed"
+  );
+
+  const txDetails = await program.provider.connection.getTransaction(tx, {
+    maxSupportedTransactionVersion: 0,
+    commitment: "confirmed",
+  });
+
+  const logs = txDetails?.meta?.logMessages || null;
+
+  if (!logs) {
+    console.log("No logs found");
+  } else {
+    console.log("Logs:", logs);
+  }
+  });
+
+  it("Deposit Rewards", async () => {
+
+    let meanTemp = 21.00;
+
+    await program.methods
+      .depositRewards(meanTemp)
+      .accountsStrict({
+        rewardVault: rewardVault,
+        pool: pool,
+        payer: payer.publicKey,
+        mintA: endcoin.publicKey,
+        mintB: gaiacoin.publicKey,
+        mintAuthority: authority,
+        rewardAccountA: associatedAddress({
+          mint: endcoin.publicKey,
+          owner: rewardVault,
+        }),
+        rewardAccountB: associatedAddress({
+          mint: gaiacoin.publicKey,
+          owner: rewardVault,
+        }),
+        tokenProgram: TOKEN_2022_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .signers([payer])
+      .rpc();
+
+  });
+
+  it("Claim Rewards", async () => {
+
+    console.log("\nDebug addresses:");
+    console.log("Pool:", pool.toBase58());
+    console.log("Reward Authority:", rewardVault.toBase58());
+    console.log("Endcoin Mint:", endcoin.publicKey.toBase58());
+    console.log("Gaiacoin Mint:", gaiacoin.publicKey.toBase58());
+
+    let amountA = new anchor.BN(10 * 10 ** 6);
+    let amountB = new anchor.BN(5 * 10 ** 6);
+
+    await program.methods
+    .claimReward(payer.publicKey, amountA, amountB)
     .accountsStrict({
       pool: pool,
-      poolAuthority: poolAuthority,
-      payer: payer.publicKey,
-      mintLiquidity: mintLiquidityPool.publicKey,
+      claimer: payer.publicKey,
       mintA: endcoin.publicKey,
       mintB: gaiacoin.publicKey,
-      mintAuthority: authority,
-      poolAccountA: associatedAddress({
+      rewardVault: rewardVault,
+      rewardAccountA: associatedAddress({
         mint: endcoin.publicKey,
-        owner: poolAuthority,
+        owner: rewardVault,
       }),
-      poolAccountB: associatedAddress({
+      rewardAccountB: associatedAddress({
         mint: gaiacoin.publicKey,
-        owner: poolAuthority,
+        owner: rewardVault,
       }),
-      depositorAccountLiquidity: associatedAddress({
-        mint: mintLiquidityPool.publicKey,
-        owner: poolAuthority,
+      toMintAAccount: associatedAddress({ 
+        mint: endcoin.publicKey, 
+        owner: payer.publicKey 
+      }),
+      toMintBAccount: associatedAddress({ 
+        mint: gaiacoin.publicKey, 
+        owner: payer.publicKey 
       }),
       tokenProgram: TOKEN_2022_PROGRAM_ID,
       associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
       systemProgram: anchor.web3.SystemProgram.programId,
-}).rpc();
+    })
+    .signers([payer])
+    .rpc();
 
-const latestBlockHash = await provider.connection.getLatestBlockhash();
-await provider.connection.confirmTransaction(
-  {
-    blockhash: latestBlockHash.blockhash,
-    lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
-    signature: tx,
-  },
-  "confirmed"
-);
+  });
 
-const txDetails = await program.provider.connection.getTransaction(tx, {
-  maxSupportedTransactionVersion: 0,
-  commitment: "confirmed",
-});
+  it("Swap from A to B", async () => {
+    const input = new anchor.BN(10 ** 6);
+    
+    try {
+      const tx = await program.methods
+        .swapExactTokensForTokens(true, input)
+        .accountsStrict({
+          amm: amm,
+          poolAuthority: poolAuthority,
+          trader: payer.publicKey, 
+          payer: payer.publicKey,
+          mintA: endcoin.publicKey,
+          mintB: gaiacoin.publicKey,
+          poolAccountA: associatedAddress({
+            mint: endcoin.publicKey,
+            owner: poolAuthority,
+          }),
+          poolAccountB: associatedAddress({
+            mint: gaiacoin.publicKey,
+            owner: poolAuthority,
+          }),
+          traderAccountA: associatedAddress({
+          mint: endcoin.publicKey,
+          owner: payer.publicKey,
+        }),
+          traderAccountB: associatedAddress({
+            mint: gaiacoin.publicKey,
+            owner: payer.publicKey,
+          }),
+          tokenProgram: TOKEN_2022_PROGRAM_ID,
+          associatedTokenProgram: ASSOCIATED_PROGRAM_ID,
+          systemProgram: anchor.web3.SystemProgram.programId,
+        })
+        .signers([payer])
+        .rpc({ skipPreflight: true });
 
-const logs = txDetails?.meta?.logMessages || null;
+      // Get and print the logs immediately
+      const txDetails = await provider.connection.getTransaction(tx, {
+        maxSupportedTransactionVersion: 0,
+        commitment: "confirmed"
+      });
+      
+      if (txDetails?.meta?.logMessages) {
+        console.log("Program Logs:");
+        txDetails.meta.logMessages.forEach(log => console.log(log));
+      }
 
-if (!logs) {
-  console.log("No logs found");
-} else {
-  console.log("Logs:", logs);
-}
-});
+    } catch (error) {
+      if ('logs' in error) {
+        console.log("Error logs:", error.logs);
+      }
+      console.error("Full error:", error);
+      throw error;
+    }
+  });
+
 
 
 });
