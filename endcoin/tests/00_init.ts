@@ -425,7 +425,7 @@ program.programId
 
   it("Update AMM Fee", async () => {
     try {
-    let new_fee = 11000;
+    let new_fee = 501;
     // Fetch the AMM account data before the transaction
     let ammFeeBefore = await program.account.amm.fetch(amm);
     console.log("AMM Fee before update:", ammFeeBefore.fee);
@@ -682,12 +682,13 @@ program.programId
 
   it("Swap from A to B", async () => {
     const input = new anchor.BN(10 ** 6);
-    
+    const minOutput = new anchor.BN(1 ** 6);
     try {
       const tx = await program.methods
-        .swapExactTokensForTokens(true, input)
+        .swapExactTokensForTokens(true, input,minOutput)
         .accountsStrict({
           amm: amm,
+          pool: pool,
           poolAuthority: poolAuthority,
           trader: payer.publicKey, 
           payer: payer.publicKey,
