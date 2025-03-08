@@ -4,6 +4,22 @@ import { Endcoin } from "../target/types/endcoin";
 import { ASSOCIATED_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
 import { assert, expect } from "chai";
 import * as dotenv from 'dotenv';
+import { 
+  program, 
+  payer, 
+  admin, 
+  createMint, 
+  findProgramAddresses,
+  executeTx,
+  DEFAULT_MINT_AMOUNT,
+  associatedAddress,
+  provider,
+  connection
+  // ... other utilities as needed
+} from './utils';
+
+
+
 
 // Load environment variables
 console.log("Current working directory:", process.cwd());
@@ -35,87 +51,8 @@ import {
   LAMPORTS_PER_SOL,
 } from '@solana/web3.js';
 
-// const TOKEN_2022_PROGRAM_ID = new anchor.web3.PublicKey(
-//   "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
-// );
 
-
-// Replace the direct imports with environment variables
-// Parse the string array into numbers
-const payerPrivateKey = JSON.parse(process.env.PAYER_PRIVATE_KEY || '[]');
-const payer = Keypair.fromSecretKey(Uint8Array.from(payerPrivateKey));
-
-// Similarly for admin if needed
-const adminPrivateKey = JSON.parse(process.env.ADMIN_PRIVATE_KEY || '[]');
-const admin = Keypair.fromSecretKey(Uint8Array.from(adminPrivateKey));
-
-
-
-  // const admin = Keypair.fromSecretKey(Uint8Array.from(ADMIN_KEY));
-
-// associated token addresses
-export function associatedAddress({
-  mint,
-  owner,
-}: {
-  mint: PublicKey;
-  owner: PublicKey;
-}): PublicKey {
-  return PublicKey.findProgramAddressSync(
-    [owner.toBuffer(), TOKEN_2022_PROGRAM_ID.toBuffer(), mint.toBuffer()],
-    ASSOCIATED_PROGRAM_ID
-  )[0];
-}
-
-const provider = anchor.AnchorProvider.env();
-anchor.setProvider(provider);
-const connection = provider.connection;
-
-
-  // create a token 2022 mint
-  async function createMint(
-    payer: anchor.web3.Keypair, 
-    mint: anchor.web3.Keypair, 
-    program): Promise<anchor.web3.Keypair> {
-
-    const [mintAuthority] = PublicKey.findProgramAddressSync(
-      [
-        anchor.utils.bytes.utf8.encode("authority"),
-      ],
-      program.programId
-    );
-
-    const freezeAuthority = Keypair.generate();
-    const closeAuthority = Keypair.generate();
-
-    const extensions = [ExtensionType.MintCloseAuthority];
-    const mintLen = getMintLen(extensions);
-    const lamports = await connection.getMinimumBalanceForRentExemption(mintLen);
-
-    const transaction = new Transaction().add(
-      SystemProgram.createAccount({
-        fromPubkey: payer.publicKey,
-        newAccountPubkey: mint.publicKey,
-        space: mintLen,
-        lamports,
-        programId: TOKEN_2022_PROGRAM_ID,
-      }),
-      createInitializeMintCloseAuthorityInstruction(mint.publicKey, closeAuthority.publicKey, TOKEN_2022_PROGRAM_ID),
-      createInitializeMintInstruction(
-        mint.publicKey,
-        6,
-        mintAuthority,
-        freezeAuthority.publicKey,
-        TOKEN_2022_PROGRAM_ID
-      )
-    );
-    await sendAndConfirmTransaction(connection, transaction, [payer, mint], undefined);
-
-    return mint;
-  }
-
-
-  // Usage
+  // Generate some keypairs for endcoin and gaiacoin mints. 
   let endcoin = Keypair.generate();
   let gaiacoin = Keypair.generate();
 
