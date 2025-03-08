@@ -635,6 +635,29 @@ program.programId
     const input = new anchor.BN(10 ** 6);
     const minOutput = new anchor.BN(1 ** 6);
     try {
+      // Get the initial balances
+      const initialTraderEndcoinBalance = await provider.connection.getTokenAccountBalance(associatedAddress({
+        mint: endcoin.publicKey,
+        owner: payer.publicKey,
+      }));
+      const initialTraderGaiacoinBalance = await provider.connection.getTokenAccountBalance(associatedAddress({
+        mint: gaiacoin.publicKey,
+        owner: payer.publicKey,
+      }));
+      const initialPoolEndcoinBalance = await provider.connection.getTokenAccountBalance(associatedAddress({
+        mint: endcoin.publicKey,
+        owner: poolAuthority,
+      }));
+      const initialPoolGaiacoinBalance = await provider.connection.getTokenAccountBalance(associatedAddress({
+        mint: gaiacoin.publicKey,
+        owner: poolAuthority,
+      }));
+
+      console.log("Initial Trader Endcoin Balance:", initialTraderEndcoinBalance.value.uiAmount);
+      console.log("Initial Trader Gaiacoin Balance:", initialTraderGaiacoinBalance.value.uiAmount);
+      console.log("Initial Pool Endcoin Balance:", initialPoolEndcoinBalance.value.uiAmount);
+      console.log("Initial Pool Gaiacoin Balance:", initialPoolGaiacoinBalance.value.uiAmount);
+
       const tx = await program.methods
         .swapExactTokensForTokens(true, input,minOutput)
         .accountsStrict({
@@ -678,6 +701,29 @@ program.programId
         console.log("Program Logs:");
         txDetails.meta.logMessages.forEach(log => console.log(log));
       }
+
+      // Get the final balances
+      const finalTraderEndcoinBalance = await provider.connection.getTokenAccountBalance(associatedAddress({
+        mint: endcoin.publicKey,
+        owner: payer.publicKey,
+      }));
+      const finalTraderGaiacoinBalance = await provider.connection.getTokenAccountBalance(associatedAddress({
+        mint: gaiacoin.publicKey,
+        owner: payer.publicKey,
+      }));
+      const finalPoolEndcoinBalance = await provider.connection.getTokenAccountBalance(associatedAddress({
+        mint: endcoin.publicKey,
+        owner: poolAuthority,
+      }));
+      const finalPoolGaiacoinBalance = await provider.connection.getTokenAccountBalance(associatedAddress({
+        mint: gaiacoin.publicKey,
+        owner: poolAuthority,
+      }));
+
+      console.log("Final Trader Endcoin Balance:", finalTraderEndcoinBalance.value.uiAmount);
+      console.log("Final Trader Gaiacoin Balance:", finalTraderGaiacoinBalance.value.uiAmount);
+      console.log("Final Pool Endcoin Balance:", finalPoolEndcoinBalance.value.uiAmount);
+      console.log("Final Pool Gaiacoin Balance:", finalPoolGaiacoinBalance.value.uiAmount);
 
     } catch (error) {
       if ('logs' in error) {
